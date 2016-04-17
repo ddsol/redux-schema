@@ -1,17 +1,23 @@
-import {snakeCase, pathToStr, namedFunction } from './utils';
+import { snakeCase, pathToStr, namedFunction } from './utils';
+import extend from 'extend';
 
 export default function hydrate(store, type, typePath, storePath, instancePath, getter, setter, properties, methods, virtuals, meta, currentInstance) {
   var instance  = currentInstance || {}
     , define    = {}
-    , typeSnake = snakeCase(pathToStr(typePath))
+    , typeSnake = snakeCase(pathToStr(typePath)).replace('.', '_')
     ;
 
-  meta = meta || {};
+  meta = extend({}, meta || {});
   meta.type = type;
-  meta.store =store;
+  meta.store = store;
   meta.typePath = typePath;
   meta.storePath = storePath;
   meta.instancePath = instancePath;
+  Object.defineProperty(meta, 'state', {
+    get: function() {
+      return store.get(storePath);
+    }
+  });
 
   define.get = {
     enumerable: true,

@@ -35,7 +35,7 @@ export function guid(len) {
   return id.substr(0, len);
 }
 
-export let snakeCase = camelCase => camelCase.replace(/[A-Z]/g, v=>'_' + v).toUpperCase().replace(/^_/, '');
+export let snakeCase = camelCase => String(camelCase).replace(/[A-Z]/g, v=>'_' + v).toUpperCase().replace(/^_/, '');
 
 export function pathToStr(path, delParams) {
   var result = ''
@@ -56,7 +56,7 @@ export function pathToStr(path, delParams) {
       }
     }
   }
-  return result.replace(/^\./, '');
+  return result.replace(/^\./, '').replace(/\[\"\*\"\]/g,'[]');
 }
 
 export function namedFunction(name, actualFunc, templateFunc) {

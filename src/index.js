@@ -3,6 +3,19 @@ import { isArray, isPlainObject, guid, pathToStr, namedFunction } from './utils'
 import { functionIsType, basicTypes } from './basic';
 import Store from './store';
 import hydrate from './hydrate';
+import arrayMethods from './array';
+
+function packVerify(type) {
+  var origPack = type.pack;
+  type.pack = function(value) {
+    var message = type.validateAssign(value);
+    if (message) {
+      throw new TypeError(message);
+    }
+    return origPack(value);
+  };
+  return type;
+}
 
 export function union() {
   var types = Array.prototype.slice.call(arguments);
@@ -18,6 +31,9 @@ export function union() {
       ;
 
     handlers = types.map(type => parseType(typeMoniker, type));
+
+    //Flatten all unions: union(union(null, undefined), union(Number, String)) => union(null, undefined, Number, String)
+    handlers = Array.prototype.concat.apply([], handlers.map(handler => handler.kind === 'union' ? handler.handlers : handler));
 
     handlers.map((handler) => {
       handler.storageKinds.forEach((kind) => {
@@ -51,16 +67,16 @@ export function union() {
         instancePath = instancePath || typeMoniker;
         if (!simple) {
           if (typeof value.type !== 'string') {
-            return 'Required type field not found for union "' + instancePath + '"';
+            return 'Required type field not found for union "' + pathToStr(instancePath) + '"';
           }
           if (!handlersById[value.type]) {
-            return 'Unexpected type "' + value.type + '" for union "' + instancePath + '"';
+            return 'Unexpected type "' + value.type + '" for union "' + pathToStr(instancePath) + '"';
           }
           return handlersById[value.type].validateData(value.data, instancePath);
         }
         return (
           !handlers.some(handler => handler.validateData(value, instancePath))
-          && 'No matching data type for union "' + instancePath + '"'
+          && 'No matching data type for union "' + pathToStr(instancePath) + '"'
         );
       },
       validateAssign: function(value, instancePath) {
@@ -79,7 +95,7 @@ export function union() {
           messages.push(message);
         }
         if (!handler) {
-          return 'Incompatible value ' + value + ' for ' + instancePath + '. ' + messages.join(' -or- ') +'.';
+          return 'Incompatible value ' + value + ' for ' + pathToStr(instancePath) + '. ' + messages.join(' -or- ') +'.';
         }
       },
       pack: function(value) {
@@ -117,10 +133,10 @@ export function union() {
               return store.unpack(handlers[i], path, instancePath);
             }
           }
-          throw new TypeError('No matching data type for union "' + instancePath + '"');
+          throw new TypeError('No matching data type for union "' + pathToStr(instancePath) + '"');
         } else {
           if (!handlersById[value.type]) {
-            return 'Unexpected type "' + value.type + '" for union "' + instancePath + '"';
+            return 'Unexpected type "' + value.type + '" for union "' + pathToStr(instancePath) + '"';
           }
           return store.unpack(handlersById[value.type], path.concat('value'), instancePath);
         }
@@ -134,9 +150,10 @@ export function union() {
             value: handlers[0].defaultValue()
           }
         );
-      }
+      },
+      handlers: handlers
     };
-    return thisType;
+    return packVerify(thisType);
   }
 
   Union.isType = true;
@@ -162,7 +179,7 @@ export function optional(baseType) {
 
 export function reference(target) {
   function Reference(typeMoniker) {
-    return {
+    return packVerify({
       isType: true,
       name: pathToStr(typeMoniker),
       kind: 'reference',
@@ -170,14 +187,14 @@ export function reference(target) {
       validateData: function(value, instancePath) {
         instancePath = instancePath || typeMoniker;
         if (typeof value !== 'string') {
-          return 'Reference data for "' + instancePath + '" must be a string';
+          return 'Reference data for "' + pathToStr(instancePath) + '" must be a string';
         }
         if (!value) return 'Reference cannot be empty';
       },
       validateAssign: function(value, instancePath) {
         instancePath = instancePath || typeMoniker;
         if (typeof value !== 'object' || !value._meta || !value._meta.idKey) {
-          return 'Reference for "' + instancePath + '" must be an object of type "' + target + '"';
+          return 'Reference for "' + pathToStr(instancePath) + '" must be an object of type "' + target + '"';
         }
       },
       pack: function(value) {
@@ -193,7 +210,7 @@ export function reference(target) {
       defaultValue: function() {
         return '<unknown>';
       }
-    };
+    });
   }
 
   Reference.isType = true;
@@ -212,27 +229,44 @@ export const Any = union(Object, Array, null, undefined, Number, Boolean, String
 
 export const Nil = union(null, undefined);
 
-function parseObjectType(typeMoniker, type) {
-  if (type === Object) return parseObjectType(typeMoniker, {});
+function parseObjectType(typeMoniker, type, arrayType) {
+  if (type === Object) return parseType(typeMoniker, {});
+  if (type === Array) return parseType(typeMoniker, []);
+
   if (typeof type !== 'object') throw new TypeError(typeMoniker + ' type must be an object');
 
+  arrayType = Boolean(arrayType);
+
   var propNames = Object.keys(type)
-    , thisType
     , props     = {}
     , virtuals  = {}
     , methods   = {}
     , meta      = {}
+    , kind = arrayType ?'array' : 'object'
+    , thisType
     , restType
     ;
 
-  if (!propNames.length) {
-    return parseType(typeMoniker, Object);
-  }
+  if (arrayType) {
+    if (!type.length) {
+      return parseType(typeMoniker, Array);
+    }
 
-  if (propNames.indexOf('*') !== -1) {
-    propNames.splice(propNames.indexOf('*'), 1);
-    if (!propNames.length && type['*'] === Any) return parseType(typeMoniker, Object);
-    restType = parseType(typeMoniker.concat('*'), type['*']);
+    if (type.length === 1) {
+      restType = parseType(typeMoniker.concat('*'), type[0]);
+      propNames = [];
+      methods = extend({}, arrayMethods);
+    }
+  } else {
+    if (!propNames.length) {
+      return parseType(typeMoniker, Object);
+    }
+
+    if (propNames.indexOf('*') !== -1) {
+      propNames.splice(propNames.indexOf('*'), 1);
+      if (!propNames.length && type['*'] === Any) return parseType(typeMoniker, Object);
+      restType = parseType(typeMoniker.concat('*'), type['*']);
+    }
   }
 
   propNames.forEach((prop) => {
@@ -264,8 +298,8 @@ function parseObjectType(typeMoniker, type) {
   thisType = {
     isType: true,
     name: pathToStr(typeMoniker),
-    kind: 'object',
-    storageKinds: ['object'],
+    kind: kind,
+    storageKinds: [kind],
     validateData: function(value, instancePath) {
       instancePath = instancePath || typeMoniker;
       if (typeof value !== 'object') {
@@ -338,16 +372,30 @@ function parseObjectType(typeMoniker, type) {
       }, props, methods, virtuals, meta, currentInstance);
     },
     defaultValue: function() {
-      var defaultValue = {};
+      var defaultValue = arrayType ? [] : {};
       Object.keys(props).forEach(name => defaultValue[name] = props[name].defaultValue());
       return defaultValue;
     },
     properties: props,
     restType: restType,
     methods: methods,
-    virtuals: virtuals
+    virtuals: virtuals,
+    packProp: function(name, value) {
+      if (propNames.indexOf(name) !== -1) {
+        type = props[name];
+      } else {
+        if (!restType) throw new TypeError('Unknown property ' + pathToStr(typeMoniker.concat(name)));
+        type = restType;
+      }
+      return type.pack(value);
+    }
   };
-  return thisType;
+
+  if (arrayType) {
+    thisType.length = type.length;
+  }
+
+  return packVerify(thisType);
 }
 
 function anyObject(typeMoniker, arrayType) {
@@ -380,7 +428,7 @@ function anyObject(typeMoniker, arrayType) {
   }
 
   function clone(obj) {
-    if (typeof value !== 'object' && value === null) {
+    if (typeof value !== 'object' || value === null) {
       return obj;
     }
     var out  = isArray(obj) ? [] : {}
@@ -424,45 +472,49 @@ function anyObject(typeMoniker, arrayType) {
       return clone(value);
     },
     unpack: function(store, path, instancePath, currentInstance) {
-      //TODO: Add array methods.
+      var methods = arrayType ? arrayMethods : {};
       return hydrate(store, thisType, typeMoniker, path, instancePath, (name) => {
         var storeValue = store.get(path)
           , propValue  = storeValue[name]
           , array      = isArray(propValue)
-          , pathName   = arrayType ? '[' + name + ']' : name
           , type
           ;
 
         if (typeof propValue === 'object' && propValue !== null) {
-          type = anyObject(typeMoniker.concat(pathName), array);
-          return store.unpack(type, path.concat(pathName), instancePath.concat(pathName), currentInstance);
+          type = anyObject(typeMoniker.concat(name), array);
+          return store.unpack(type, path.concat(name), instancePath.concat(name), currentInstance);
         } else {
           return propValue;
         }
       }, (name, value) => {
-        var pathName = arrayType ? '[' + name + ']' : name;
-        if (typeof value !== 'object' || value === null || !isValidObject(value)) {
-          throw new TypeError(pathToStr(typeMoniker.concat(pathName)) + ' only accepts simple types');
+        if (typeof value === 'object' && value === null && !isValidObject(value)) {
+          throw new TypeError(pathToStr(typeMoniker.concat(name)) + ' only accepts simple types');
         }
         store.put(path.concat(name), clone(value));
-      }, {}, {}, {}, {}, currentInstance);
+      }, {}, methods, {}, {}, currentInstance);
     },
     defaultValue: function() {
       return arrayType ? [] : {};
     },
     properties: {},
     methods: {},
-    virtuals: {}
+    virtuals: {},
+    packProp: function(name, value) {
+      if (typeof value === 'object' && value === null && !isValidObject(value)) {
+        throw new TypeError(pathToStr(typeMoniker.concat(name)) + ' only accepts simple types');
+      }
+      return clone(value);
+    }
   };
 
-  return thisType;
+  return packVerify(thisType);
 }
 
 function basicType(typeMoniker, type) {
 
   var upName = type.name[0].toUpperCase() + type.name.substr(1);
 
-  return {
+  return packVerify({
     isType: true,
     name: pathToStr(typeMoniker),
     kind: type.name,
@@ -489,7 +541,7 @@ function basicType(typeMoniker, type) {
     defaultValue: function() {
       return type.defaultValue;
     }
-  };
+  });
 }
 
 function parseType(typeMoniker, type) {
@@ -508,8 +560,10 @@ function parseType(typeMoniker, type) {
 
   if (typeof type === 'object') {
     if (isArray(type)) {
-      //return parseArrayType(typeMoniker, type);
-      throw new Error('Arrays are not yet supported');
+      if (!type.length) {
+        return anyObject(typeMoniker, true);
+      }
+      return parseObjectType(typeMoniker, type, true);
     } else {
       return parseObjectType(typeMoniker, type);
     }
@@ -531,13 +585,10 @@ function rootSchema(schemas) {
         args.unshift(this._store);
         return schema.apply(instance, arguments);
       }, 'function(){\n  return new ' + schema.name + '(...arguments);\n}'),
-      enumerate: function() {
+      enumerate: bare(function() {
         return Object.keys(this._meta.store.get([schema.name.toLowerCase()]));
-      }
+      })
     };
-
-    rootType[schema.collection].enumerate.noWrap = true;
-
   });
 
   return parseType([], rootType);
@@ -554,7 +605,7 @@ export default function schema(name, schema, options) {
   var resultType = parseObjectType([name], schema)
     , collection = name[0].toLowerCase() + name.substr(1)
     , idKey
-    , resultSchema
+    , ResultSchema
     ;
 
   Object.keys(resultType.properties || {}).forEach((name) => {
@@ -588,7 +639,12 @@ export default function schema(name, schema, options) {
     }
   }, origConstructor || function(){});
 
-  resultSchema = namedFunction(name, function(store) {
+  ResultSchema = namedFunction(name, function(store) {
+
+    if (!(this instanceof ResultSchema)) {
+      return new ResultSchema(...arguments);
+    }
+
     var args = Array.prototype.slice.call(arguments)
       , path
       ;
@@ -619,7 +675,7 @@ export default function schema(name, schema, options) {
     return store.unpack(resultType, path, path);
   }
 
-  extend(resultSchema, {
+  extend(ResultSchema, {
     type: resultType,
     collection: collection,
     options: options,
@@ -628,7 +684,16 @@ export default function schema(name, schema, options) {
     isSchema: true
   });
 
-  return resultSchema;
+  return ResultSchema;
+}
+
+export function bare(func) {
+  func.noWrap = true;
+  return func;
+}
+
+export function reducer(func) {
+  func.reducer = true;
 }
 
 extend(schema, {
@@ -640,6 +705,7 @@ extend(schema, {
 
   optional: optional,
   reference: reference,
+  bare: bare,
 
   Store: Store
 });

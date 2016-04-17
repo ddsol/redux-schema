@@ -15,37 +15,27 @@ export function functionIsType(func) {
 export const basicTypes = {
   String: {
     name: 'string',
-    is: function(v) {
-      return typeof v === 'string';
-    },
+    is: v => typeof v === 'string',
     defaultValue: ''
   },
   Number: {
     name: 'number',
-    is: function(v) {
-      return typeof v === 'number';
-    },
+    is: v => typeof v === 'number',
     defaultValue: 0
   },
   Boolean: {
     name: 'boolean',
-    is: function(v) {
-      return typeof v === 'boolean';
-    },
+    is: v => typeof v === 'boolean',
     defaultValue: false
   },
   Null: {
     name: 'null',
-    is: function(v) {
-      return v === null;
-    },
+    is: v => v === null,
     defaultValue: null
   },
   Undefined: {
     name: 'undefined',
-    is: function(v) {
-      return typeof v === 'undefined';
-    },
+    is: v => typeof v === 'undefined',
     defaultValue: undefined
   }
 };

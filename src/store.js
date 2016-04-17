@@ -41,19 +41,36 @@ Store.prototype.setVirtual = function(obj, actionType, instancePath, setter, val
 
 Store.prototype.invoke = function(obj, actionType, instancePath, method, args) {
   var action = {
-    type: actionType,
-    path: instancePath,
-    args: args
-  };
+        type: actionType,
+        path: instancePath,
+        args: args
+      }
+    , result
+    , currentState
+    , newState
+    ;
 
   if (this.state === undefined) {
     this.store.dispatch(action);
-    var result = this.result;
+    result = this.result;
     this.result = undefined;
     return result;
   } else {
     if (this.verifyAction && this.verifyAction.type !== actionType) return;
     this.verifyAction = null;
+    if (method.reducer) {
+      result = {};
+
+      currentState = this.get(obj._meta.storePath);
+
+      newState = method.call(obj, currentState, args, result);
+
+      if (currentState !== newState) {
+        this.put(obj._meta.storePath, newState);
+      }
+      if ('result' in result) return result.result;
+      return this;
+    }
     return method.apply(obj, args);
   }
 };
@@ -67,7 +84,6 @@ function propActionFromPath(path) {
 Store.prototype.put = function(path, value) {
   var action = {
     type: 'SET_' + propActionFromPath(path),
-    prop: true,
     path: path,
     value: value
   };
@@ -102,6 +118,7 @@ Store.prototype.reducer = function(state, action) {
   this.result = this.executeAction(action);
   state = this.state;
   this.state = undefined;
+  Object.freeze(state);
   return state;
 };
 
@@ -153,7 +170,7 @@ Store.prototype.executeAction = function(action) {
     , result
     ;
 
-  if (action.prop && action.type === 'SET_' + propActionFromPath(path)) {
+  if ('value' in action && action.type === 'SET_' + propActionFromPath(path)) {
     this.state = updateProperty(this.state, path, action.value);
   } else {
     methodOrPropName = path.pop();

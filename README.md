@@ -164,33 +164,10 @@ user.makeFoo();
 
 console.log(user.getGreeting());
 /*
-
-  generates:
-  dispatch({ 
-    type: 'USER_GET_GREETING',
-    path: [ 'user', '9b66b7d0005111e68f23a7ab', 'getGreeting' ],
-    args: []
-  });
-  
-  new state:
-  { 
-    user: {
-      '9b66b7d0005111e68f23a7ab': {
-        address: { type: '1:union', value: null },
-        id: '9b66b7d0005111e68f23a7ab',
-        friend: undefined,
-        first: 'Foo',
-        last: 'Bar' 
-      } 
-    } 
-  }
-  
-  Even though the method doesn't change any state, Redux-Store doesn't know
-  that so it generates an action. This may still be useful later when replaying
-  actions and the new method does modify the state. In the future a wrapper
-  will likely be added to allow methods to not generate actions.
+  Because it's wrapped in schema.bare, it doesn't generate any action.
+  If it did set any properties, it would result in the same actions as if
+  when those properties were set from outside a method.
 */
-
 
 user.address = { street: '123 west somewhere', town: 'Wiggletown' };
 /*
