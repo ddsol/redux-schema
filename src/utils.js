@@ -82,3 +82,32 @@ export function namedFunction(name, actualFunc, templateFunc) {
   };
   return func;
 }
+
+export function toObject(value) {
+
+  var seenValues = []
+    , seenObjects = []
+    ;
+
+  function internal(value) {
+    if (typeof value !== 'object' || !value) return value;
+    if (!('keys' in value) || !('_meta' in value)) return value;
+    if (value._meta.type.kind === 'array') return value.slice().map(v => internal(v));
+    var result = {}
+      , ix = seenValues.indexOf(value);
+
+    if (ix !== -1) {
+      return seenObjects[ix];
+    }
+
+    seenValues.push(value);
+    seenObjects.push(result);
+
+    value.keys.forEach(key => {
+      result[key] = internal(value.get(key));
+    });
+    return result;
+  }
+
+  return internal(value);
+}

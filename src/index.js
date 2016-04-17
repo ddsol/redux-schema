@@ -2,8 +2,8 @@ import extend from 'extend';
 import { isArray, isPlainObject, guid, pathToStr, namedFunction } from './utils';
 import { functionIsType, basicTypes } from './basic';
 import Store from './store';
-import hydrate from './hydrate';
-import arrayMethods from './array';
+import { hydratePrototype, hydrateInstance } from './hydrate';
+import { arrayMethods, arrayVirtuals } from './array';
 
 function packVerify(type) {
   var origPack = type.pack;
@@ -81,9 +81,9 @@ export function union() {
       },
       validateAssign: function(value, instancePath) {
         instancePath = instancePath || typeMoniker;
-        var handler
+        var messages = []
+          , handler
           , message
-          , messages = []
           ;
 
         for (var i = 0; i < handlers.length; i++) {
@@ -99,10 +99,10 @@ export function union() {
         }
       },
       pack: function(value) {
-        var handler
+        var messages = []
+          , handler
           , packed
           , message
-          , messages = []
           ;
         for (var i = 0; i < handlers.length; i++) {
           message = handlers[i].validateAssign(value);
@@ -243,6 +243,7 @@ function parseObjectType(typeMoniker, type, arrayType) {
     , methods   = {}
     , meta      = {}
     , kind = arrayType ?'array' : 'object'
+    , prototype
     , thisType
     , restType
     ;
@@ -256,6 +257,7 @@ function parseObjectType(typeMoniker, type, arrayType) {
       restType = parseType(typeMoniker.concat('*'), type[0]);
       propNames = [];
       methods = extend({}, arrayMethods);
+      virtuals = extend({}, arrayVirtuals);
     }
   } else {
     if (!propNames.length) {
@@ -351,25 +353,8 @@ function parseObjectType(typeMoniker, type, arrayType) {
       }
       return out;
     },
-    unpack: function(store, path, instancePath, currentInstance) {
-      return hydrate(store, thisType, typeMoniker, path, instancePath, (name) => {
-        var type;
-        if (propNames.indexOf(name) !== -1) {
-          type = props[name];
-        } else {
-          if (!restType) throw new TypeError('Unknown property ' + pathToStr(instancePath.concat(name)));
-          type = restType;
-        }
-        return store.unpack(type, path.concat(name), instancePath.concat(name));
-      }, (name, value) => {
-        if (propNames.indexOf(name) !== -1) {
-          type = props[name];
-        } else {
-          if (!restType) throw new TypeError('Unknown property ' + pathToStr(instancePath.concat(name)));
-          type = restType;
-        }
-        store.put(path.concat(name), type.pack(value));
-      }, props, methods, virtuals, meta, currentInstance);
+    unpack: function(store, storePath, instancePath, currentInstance) {
+      return hydrateInstance(prototype, store, storePath, instancePath, currentInstance);
     },
     defaultValue: function() {
       var defaultValue = arrayType ? [] : {};
@@ -380,6 +365,9 @@ function parseObjectType(typeMoniker, type, arrayType) {
     restType: restType,
     methods: methods,
     virtuals: virtuals,
+    defaultRestProp: function() {
+      if (restType) return restType.defaultValue();
+    },
     packProp: function(name, value) {
       if (propNames.indexOf(name) !== -1) {
         type = props[name];
@@ -395,6 +383,34 @@ function parseObjectType(typeMoniker, type, arrayType) {
     thisType.length = type.length;
   }
 
+  prototype = hydratePrototype(thisType, typeMoniker, function getter(name) {
+    var meta = this._meta
+      , type
+      ;
+    if (propNames.indexOf(name) !== -1) {
+      type = props[name];
+    } else {
+      if (!restType) throw new TypeError('Unknown property ' + pathToStr(meta.instancePath.concat(name)));
+      type = restType;
+      if (!name in this._meta.state) return;
+    }
+    return meta.store.unpack(type, meta.storePath.concat(name), meta.instancePath.concat(name));
+  }, function setter(name, value) {
+    var meta = this._meta;
+
+    if (propNames.indexOf(name) !== -1) {
+      type = props[name];
+    } else {
+      if (!restType) throw new TypeError('Unknown property ' + pathToStr(meta.instancePath.concat(name)));
+      type = restType;
+    }
+    meta.store.put(meta.storePath.concat(name), type.pack(value));
+  }, function keys() {
+    return Object.keys(this._meta.state);
+  }, props, methods, virtuals, meta);
+
+  thisType.prototype = prototype;
+
   return packVerify(thisType);
 }
 
@@ -403,6 +419,7 @@ function anyObject(typeMoniker, arrayType) {
   arrayType = Boolean(arrayType);
 
   var kind     = arrayType ? 'array' : 'object'
+    , prototype
     , thisType
     ;
 
@@ -471,27 +488,8 @@ function anyObject(typeMoniker, arrayType) {
       }
       return clone(value);
     },
-    unpack: function(store, path, instancePath, currentInstance) {
-      var methods = arrayType ? arrayMethods : {};
-      return hydrate(store, thisType, typeMoniker, path, instancePath, (name) => {
-        var storeValue = store.get(path)
-          , propValue  = storeValue[name]
-          , array      = isArray(propValue)
-          , type
-          ;
-
-        if (typeof propValue === 'object' && propValue !== null) {
-          type = anyObject(typeMoniker.concat(name), array);
-          return store.unpack(type, path.concat(name), instancePath.concat(name), currentInstance);
-        } else {
-          return propValue;
-        }
-      }, (name, value) => {
-        if (typeof value === 'object' && value === null && !isValidObject(value)) {
-          throw new TypeError(pathToStr(typeMoniker.concat(name)) + ' only accepts simple types');
-        }
-        store.put(path.concat(name), clone(value));
-      }, {}, methods, {}, {}, currentInstance);
+    unpack: function(store, storePath, instancePath, currentInstance) {
+      return hydrateInstance(prototype, store, storePath, instancePath, currentInstance);
     },
     defaultValue: function() {
       return arrayType ? [] : {};
@@ -499,6 +497,9 @@ function anyObject(typeMoniker, arrayType) {
     properties: {},
     methods: {},
     virtuals: {},
+    defaultRestProp: function() {
+      //
+    },
     packProp: function(name, value) {
       if (typeof value === 'object' && value === null && !isValidObject(value)) {
         throw new TypeError(pathToStr(typeMoniker.concat(name)) + ' only accepts simple types');
@@ -506,6 +507,32 @@ function anyObject(typeMoniker, arrayType) {
       return clone(value);
     }
   };
+
+  prototype = hydratePrototype(thisType, typeMoniker, function(name) {
+    var meta       = this._meta
+      , storeValue = meta.store.get(meta.storePath)
+      , propValue  = storeValue[name]
+      , array      = isArray(propValue)
+      , type
+      ;
+
+    if (typeof propValue === 'object' && propValue !== null) {
+      type = anyObject(typeMoniker.concat(name), array);
+      return meta.store.unpack(type, meta.storePath.concat(name), meta.instancePath.concat(name), this);
+    } else {
+      return propValue;
+    }
+  }, function(name, value) {
+    var meta = this._meta;
+    if (typeof value === 'object' && value === null && !isValidObject(value)) {
+      throw new TypeError(pathToStr(typeMoniker.concat(name)) + ' only accepts simple types');
+    }
+    meta.store.put(meta.storePath.concat(name), clone(value));
+  }, function keys() {
+    return Object.keys(this._meta.state);
+  }, {}, arrayType ? arrayMethods : {}, arrayType ? arrayVirtuals : {}, {});
+
+  thisType.prototype = prototype;
 
   return packVerify(thisType);
 }
@@ -586,7 +613,7 @@ function rootSchema(schemas) {
         return schema.apply(instance, arguments);
       }, 'function(){\n  return new ' + schema.name + '(...arguments);\n}'),
       enumerate: bare(function() {
-        return Object.keys(this._meta.store.get([schema.name.toLowerCase()]));
+        return Object.keys(this._meta.store.get([schema.name.toLowerCase()])).map(id => this.get(id));
       })
     };
   });
@@ -676,6 +703,7 @@ export default function schema(name, schema, options) {
   }
 
   extend(ResultSchema, {
+    prototype: resultType.prototype,
     type: resultType,
     collection: collection,
     options: options,

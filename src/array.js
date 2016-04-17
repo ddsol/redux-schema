@@ -8,7 +8,7 @@ function bare(func) {
   return func;
 }
 
-const arrayMethods = {
+export const arrayMethods = {
   concat: bare(function() {
     return this._meta.state.concat.apply(this._meta.state, arguments);
   }),
@@ -311,4 +311,21 @@ const arrayMethods = {
   })
 };
 
-export default arrayMethods;
+export const arrayVirtuals = {
+  length: {
+    get: function() {
+      return this._meta.state.length;
+    },
+    set: function(value) {
+      if (this._meta.type.length > 1) throw new TypeError('Cannot change the length of a tuple array');
+      var newState        = this._meta.state.slice(0, value)
+        , defaultRestProp = this._meta.type.defaultRestProp.bind(this._meta.type) || (v => undefined)
+        ;
+
+      while (newState.length < value) {
+        newState.push(defaultRestProp());
+      }
+      this._meta.state = newState;
+    }
+  }
+};
