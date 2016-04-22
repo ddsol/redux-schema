@@ -59,12 +59,14 @@ export function pathToStr(path, delParams) {
   return result.replace(/^\./, '').replace(/\[\"\*\"\]/g,'[]');
 }
 
-export function namedFunction(name, actualFunc, templateFunc) {
+export function namedFunction(name, actualFunc, templateFunc, passThrough) {
+  if (passThrough) {
+    return actualFunc;
+  }
   if (!templateFunc) {
     templateFunc = actualFunc;
   }
 
-  //noinspection Eslint
   var f = actualFunc; // eslint-disable-line
 
   if (typeof actualFunc !== 'function') throw new TypeError('Parameter to namedFunction must be a function');
@@ -75,7 +77,6 @@ export function namedFunction(name, actualFunc, templateFunc) {
 
   funcText = funcText.replace(/^[^{]+\{|}$/g, '');
 
-  //noinspection Eslint
   var func = eval('(function(){function ' + name + signature + '{/*' + funcText.replace(/\*\//g, '* /') + '*/return f.apply(this,arguments);}return ' + name + '}())'); // eslint-disable-line
   func.toString = function() {
     return 'function ' + name + signature + '{' + funcText + '}';
@@ -90,6 +91,7 @@ export function toObject(value) {
     ;
 
   function internal(value) {
+    if ((value instanceof Date) || (value instanceof RegExp) || (value instanceof Error)) return value;
     if (typeof value !== 'object' || !value) return value;
     if (!('keys' in value) || !('_meta' in value)) return value;
     if (value._meta.type.kind === 'array') return value.slice().map(v => internal(v));

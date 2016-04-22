@@ -310,7 +310,7 @@ user.friend = user;
   }
 */
 
-console.log(store.rootInstance.user.enumerate()); //[ '9b66b7d0005111e68f23a7ab' ]
+console.log(store.rootInstance.user.keys); //[ '9b66b7d0005111e68f23a7ab' ]
 
 new User(store);
 new User(store);
@@ -347,7 +347,7 @@ new User(store);
   }
 
 */
-console.log(store.rootInstance.user.enumerate());
+console.log(store.rootInstance.user.keys);
 //[ '9b66b7d0005111e68f23a7ab', '6a8b6800005511e68e3269d9', '6a8b8f10005511e68e3269d9' ]
 
 ```
@@ -356,9 +356,7 @@ console.log(store.rootInstance.user.enumerate());
 
 There's still a lot of work to be done:
  - Tests
- - Support Arrays, typed arrays and tuples
- - Support `Date`, `RegExp` and `Error`
  - Better documentation
- - Custom validation
+ - Allow to set defaults
  - Code cleanup
- - More internal schema validation with option to turn off in production (for performance)
+ - Add method parameter type descriptions and automatic serialization and deserialization of arguments

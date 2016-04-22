@@ -1,9 +1,28 @@
-import extend from 'extend';
 import { snakeCase, pathToStr } from './utils';
+
+function freeze(obj) {
+  if (Object.freeze) {
+    Object.freeze(obj);
+  }
+}
 
 export default function Store(options) {
   function error() {
-    throw new Error('schema Store has no redux store assigned');
+    throw new Error('Schema Store has no Redux Store assigned');
+  }
+
+  var {schema, ... newOptions } = { ...{typeMoniker: []}, ...options};
+
+  options = newOptions;
+
+  if (options.debug) {
+    options.freeze = true;
+    options.validate = true;
+    options.namedFunctions = true;
+  }
+
+  if (!schema || !schema.isType) {
+    throw new Error('Missing schema in Store options');
   }
 
   this.result = undefined;
@@ -14,7 +33,7 @@ export default function Store(options) {
     getState: error
   };
   this.options = options;
-  this.root = this.options.schema;
+  this.schema = schema(options);
   this.maxCache = 1024;
   this.cache = {};
   this.cachePaths = [];
@@ -40,15 +59,33 @@ Store.prototype.setVirtual = function(obj, actionType, instancePath, setter, val
 };
 
 Store.prototype.invoke = function(obj, actionType, instancePath, method, args) {
-  var action = {
+  var self   = this
+    , action = {
         type: actionType,
         path: instancePath,
         args: args
       }
-    , result
     , currentState
     , newState
+    , result
+    , arg
+    , ix
     ;
+
+  function argResolved(value) {
+    args = args.slice();
+    args[ix] = value;
+    return self.invoke(obj, actionType, instancePath, method, args);
+  }
+
+  if (method.autoResolve) {
+    for (ix = 0; ix < args.length; ix++) {
+      arg = args[ix];
+      if (arg && typeof arg === 'object' && typeof arg.then === 'function') {
+        return arg.then(argResolved);
+      }
+    }
+  }
 
   if (this.state === undefined) {
     this.store.dispatch(action);
@@ -109,16 +146,17 @@ Store.prototype.get = function(path) {
 };
 
 Store.prototype.reducer = function(state, action) {
-  if (!this.root) throw new TypeError('This store has no root schema attached');
   if (state === undefined) {
-    state = this.root ? this.root.defaultValue() : {}; //This should include all the collections...
+    state = this.schema.defaultValue();
   }
   if (!action.path) return state;
   this.state = state;
   this.result = this.executeAction(action);
   state = this.state;
   this.state = undefined;
-  Object.freeze(state);
+  if (this.options.freeze) {
+    freeze(state);
+  }
   return state;
 };
 
@@ -154,7 +192,7 @@ Store.prototype.executeAction = function(action) {
         }
         throw new Error('Property put does not support extra properties on Arrays');
       }
-      newState = extend({}, state);
+      newState = { ...state };
       if (updated === undefined) {
         delete newState[name];
       } else {
@@ -189,7 +227,7 @@ Store.prototype.executeAction = function(action) {
 
 Store.prototype.traversePath = function(path) {
   var toGo    = path.slice()
-    , current = this.rootInstance
+    , current = this.instance
     ;
   while (current && toGo.length) {
     current = current.get(toGo.shift());
@@ -213,8 +251,8 @@ Store.prototype.unpack = function(type, storePath, instancePath, currentInstance
   cached = this.cache[path];
   if (cached && !currentInstance && result._meta && result._meta.type === cached._meta.type) {
     ix = this.cachePaths.indexOf(path);
-    if (ix!==-1) {
-      this.cachePaths.splice(ix,1);
+    if (ix !== -1) {
+      this.cachePaths.splice(ix, 1);
     }
     this.cachePaths.push(path);
     return cached;
@@ -229,14 +267,13 @@ Store.prototype.unpack = function(type, storePath, instancePath, currentInstance
 };
 
 Object.defineProperties(Store.prototype, {
-  rootInstance: {
+  instance: {
     enumerable: false,
     get: function() {
-      if (!this.root) throw new TypeError('This store has no root schema attached');
-      if (!this._rootInstance) {
-        this._rootInstance = this.unpack(this.root, [], []);
+      if (!this._instance) {
+        this._instance = this.unpack(this.schema, [], []);
       }
-      return this._rootInstance;
+      return this._instance;
     }
   },
   isStore: {

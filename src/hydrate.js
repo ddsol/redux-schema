@@ -1,15 +1,18 @@
 import { snakeCase, pathToStr, namedFunction, toObject } from './utils';
-import extend from 'extend';
 
-export function hydratePrototype(type, typePath, getter, setter, keys, properties, methods, virtuals, meta) {
+function freezeObject(obj) {
+  if (Object.freeze) {
+    Object.freeze(obj);
+  }
+}
+
+export function hydratePrototype({ type, typePath, getter, setter, keys, properties = {}, methods = {}, virtuals = {}, meta = {}, freeze, namedFunctions }) {
   var prototype = Object.create(type.kind === 'array' ? Array.prototype : Object.prototype)
     , define    = {}
     , typeSnake = snakeCase(pathToStr(typePath)).replace('.', '_')
     ;
 
-  meta = extend({}, meta || {});
-  meta.type = type;
-  meta.typePath = typePath;
+  meta = { ...meta, type, typePath };
 
   Object.defineProperty(meta, 'state', {
     get: function() {
@@ -41,7 +44,9 @@ export function hydratePrototype(type, typePath, getter, setter, keys, propertie
     get: keys
   };
 
-  if (Object.freeze) Object.freeze(meta);
+  if (freeze) {
+    freezeObject(meta);
+  }
 
   define._meta = {
     enumerable: false,
@@ -98,7 +103,7 @@ export function hydratePrototype(type, typePath, getter, setter, keys, propertie
             , path = meta.instancePath.concat(methodName)
             ;
           return meta.store.invoke(this, actionType, path, methods[methodName], Array.prototype.slice.call(arguments));
-        }, method)
+        }, method, !namedFunctions)
       };
     }
   });
@@ -121,11 +126,13 @@ export function hydratePrototype(type, typePath, getter, setter, keys, propertie
   });
 
   Object.defineProperties(prototype, define);
-  if (Object.freeze) Object.freeze(prototype);
+  if (freeze) {
+    freezeObject(prototype);
+  }
   return prototype;
 }
 
-export function hydrateInstance(prototype, store, storePath, instancePath, currentInstance, meta) {
+export function hydrateInstance({ prototype, store, storePath, instancePath, currentInstance, meta, freeze }) {
   var instance = currentInstance || Object.create(prototype);
 
   meta = Object.create(instance._meta, meta || {});
@@ -134,14 +141,18 @@ export function hydrateInstance(prototype, store, storePath, instancePath, curre
   meta.storePath = storePath;
   meta.instancePath = instancePath;
 
-  if (Object.freeze) Object.freeze(meta);
+  if (freeze) {
+    freezeObject(meta);
+  }
 
   Object.defineProperty(instance, '_meta', {
     enumerable: false,
     value: meta
   });
 
-  if (Object.seal) Object.seal(instance);
+  if (freeze && Object.seal) {
+    Object.seal(instance);
+  }
 
   return instance;
 }

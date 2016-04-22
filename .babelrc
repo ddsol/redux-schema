@@ -24,6 +24,12 @@
       "plugins": [
         ["transform-es2015-modules-commonjs", { "loose": true }]
       ]
+    },
+    "debug": {
+      "plugins": [
+        ["transform-es2015-modules-commonjs", { "loose": true }]
+      ],
+      "sourceMaps": "both"
     }
   }
 }

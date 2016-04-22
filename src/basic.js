@@ -1,5 +1,5 @@
 export function functionIsType(func) {
-  return (
+  return func && (
     func === String
     || func === Number
     || func === Boolean

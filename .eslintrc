@@ -22,7 +22,8 @@
     "restParams": true,
     "spread": true,
     "templateStrings": true,
-    "unicodeCodePointEscapes": true
+    "unicodeCodePointEscapes": true,
+    "experimentalObjectRestSpread": true
   },
   "rules": {
     "block-scoped-var": 2,

@@ -40,10 +40,10 @@
     "url": "https://github.com/ddsol/redux-schema/issues"
   },
   "dependencies": {
-    "extend": "^3.0.0",
     "is-plain-object": "^2.0.1",
     "node-uuid": "^1.4.7",
-    "serialize-error": "^1.1.0"
+    "serialize-error": "^1.1.0",
+    "simpexp": "^0.1.0"
   },
   "peerDependencies": {
     "redux": "^3.4.0"
