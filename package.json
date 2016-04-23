@@ -71,6 +71,7 @@
     "babel-plugin-transform-es2015-sticky-regex": "^6.3.13",
     "babel-plugin-transform-es2015-template-literals": "^6.3.13",
     "babel-plugin-transform-es2015-unicode-regex": "^6.3.13",
+    "babel-plugin-transform-object-assign": "^6.5.0",
     "babel-plugin-transform-object-rest-spread": "^6.3.13",
     "babel-register": "^6.3.13",
     "cross-env": "^1.0.7",

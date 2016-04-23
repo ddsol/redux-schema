@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import { isArray, isPlainObject, guid, pathToStr, namedFunction } from './utils';
 import { functionIsType, basicTypes } from './basic';
 import Store from './store';

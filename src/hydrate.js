@@ -150,8 +150,8 @@ export function hydrateInstance({ prototype, store, storePath, instancePath, cur
     value: meta
   });
 
-  if (freeze && Object.seal) {
-    Object.seal(instance);
+  if (freeze) {
+    freezeObject(meta);
   }
 
   return instance;
