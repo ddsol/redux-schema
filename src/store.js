@@ -11,7 +11,7 @@ export default function Store(options) {
     throw new Error('Schema Store has no Redux Store assigned');
   }
 
-  var {schema, ... newOptions } = { ...{typeMoniker: []}, ...options};
+  var {schema, ... newOptions } = { ...{typeMoniker: []}, ...options, store: this };
 
   options = newOptions;
 
@@ -238,13 +238,13 @@ Store.prototype.traversePath = function(path) {
   return current;
 };
 
-Store.prototype.unpack = function(type, storePath, instancePath, currentInstance) {
+Store.prototype.unpack = function(type, storePath, instancePath, currentInstance, owner) {
   var path
     , cached
     , result
     , ix
     ;
-  result = type.unpack(this, storePath, instancePath, currentInstance);
+  result = type.unpack(this, storePath, instancePath, currentInstance, owner);
   if (!result || typeof result !== 'object') return result;
 
   path = pathToStr(instancePath);
@@ -274,6 +274,11 @@ Object.defineProperties(Store.prototype, {
         this._instance = this.unpack(this.schema, [], []);
       }
       return this._instance;
+    }
+  },
+  models: {
+    get: function() {
+      return this.instance.models;
     }
   },
   isStore: {

@@ -135,7 +135,7 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
 export function hydrateInstance({ prototype, store, storePath, instancePath, currentInstance, meta, freeze }) {
   var instance = currentInstance || Object.create(prototype);
 
-  meta = Object.create(instance._meta, meta || {});
+  meta = Object.assign(Object.create(instance._meta), meta);
 
   meta.store = store;
   meta.storePath = storePath;

@@ -32,10 +32,11 @@ Redux-Schema is designed to overcome these issues. It allows you to use Redux wi
 A picture is worth 1000 words. Unfortunately, I'm no artist. So here's some code:
 
 ```
-import schema from 'redux-schema';
-import redux from 'redux';
+import { model, optional, Nil, bare, reference, collections, Store } from 'redux-schema';
+import { createStore } from 'redux';
 
-var User = schema('User', {
+
+var userModel = schema('User', {
   first: schema.optional(String),
   last: schema.optional(String),
 
@@ -80,13 +81,15 @@ var User = schema('User', {
   }
 });
 
-var root = schema([User]);
+var root = collections([userModel]);
 
-var store = new schema.Store({ schema: root });
+var store = new Store({ schema: root, debug: true });
 
 store.store = redux.createStore(store.reducer);
 
-var user = new User(store, 'foo', 'bar');
+var { User } = store.models;
+
+var user = new User('foo', 'bar');
 /* 
   generates:
   
@@ -312,8 +315,8 @@ user.friend = user;
 
 console.log(store.rootInstance.user.keys); //[ '9b66b7d0005111e68f23a7ab' ]
 
-new User(store);
-new User(store);
+new User();
+new User();
 /*
 
   new state:

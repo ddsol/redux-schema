@@ -1,10 +1,12 @@
 import { isArray, isPlainObject, guid, pathToStr, namedFunction } from './utils';
 import { functionIsType, basicTypes } from './basic';
-import Store from './store';
+import _Store from './store';
 import { hydratePrototype, hydrateInstance } from './hydrate';
 import { arrayMethods, arrayVirtuals } from './array';
 import serializeError from 'serialize-error';
 import SimpExp from 'simpexp';
+
+export const Store = _Store;
 
 function freeze(obj) {
   if (Object.freeze) {
@@ -50,11 +52,12 @@ export function union() {
       , storageKinds = {}
       , kinds        = {}
       , handlersById = {}
+      , self         = { options }
       , handlerIds
       , handlers
       ;
 
-    handlers = types.map(type => parseType(options, type));
+    handlers = types.map(type => parseType({ ...options, parent: options.self || self, self: null }, type));
 
     //Flatten all unions: union(union(null, undefined), union(Number, String)) => union(null, undefined, Number, String)
     handlers = Array.prototype.concat.apply([], handlers.map(handler => handler.kind === 'union' ? handler.handlers : handler));
@@ -87,7 +90,7 @@ export function union() {
       name: 'union(' + handlers.map(handler => handler.kind).join(', ') + ')',
       kind: 'union',
       storageKinds: Object.keys(storageKinds),
-      options: options,
+      options,
       validateData: function(value, instancePath) {
         instancePath = instancePath || typeMoniker;
         if (!simple) {
@@ -149,13 +152,13 @@ export function union() {
           value: packed
         };
       },
-      unpack: function(store, path, instancePath, currentInstance) {
+      unpack: function(store, path, instancePath, currentInstance, owner) {
         if (currentInstance) throw new Error('Union types cannot modify a data instance');
         var value = store.get(path);
         if (simple) {
           for (var i = 0; i < handlers.length; i++) {
             if (!handlers[i].validateData(value, instancePath)) {
-              return store.unpack(handlers[i], path, instancePath);
+              return store.unpack(handlers[i], path, instancePath, null, owner);
             }
           }
           throw new TypeError('No matching data type for union "' + pathToStr(instancePath) + '"');
@@ -163,7 +166,7 @@ export function union() {
           if (!handlersById[value.type]) {
             return 'Unexpected type "' + value.type + '" for union "' + pathToStr(instancePath) + '"';
           }
-          return store.unpack(handlersById[value.type], path.concat('value'), instancePath);
+          return store.unpack(handlersById[value.type], path.concat('value'), instancePath, null, owner);
         }
       },
       defaultValue: function() {
@@ -176,10 +179,10 @@ export function union() {
           }
         );
       },
-      handlers: handlers
+      handlers
     };
 
-    return finalizeType(thisType);
+    return Object.assign(self, finalizeType(thisType));
   }
 
   Union.isType = true;
@@ -187,16 +190,17 @@ export function union() {
 }
 
 export function optional(baseType) {
-  if (parseType({ typeMoniker: [] }, baseType).storageKinds.indexOf('undefined') !== -1) {
-    return baseType;
-  }
-
   function Optional(options) {
-    var base = parseType(options, baseType)
-      , out  = parseType(options, union(undefined, baseType))
+    var self = { options }
+      , base = parseType({ ...options, parent: options.self || self, self: null }, baseType)
+      , out  = union(undefined, baseType)(options)
       ;
+    if (base.storageKinds.indexOf('undefined') !== -1) {
+      return parseType(options, baseType);
+    }
+
     out.name = 'optional(' + base.name + ')';
-    return out;
+    return Object.assign(self, out);
   }
 
   Optional.isType = true;
@@ -205,7 +209,8 @@ export function optional(baseType) {
 
 export function validate(baseType, validation) {
   function Validate(options) {
-    var type          = { ...parseType(options, baseType) }
+    var self          = { options }
+      , type          = { ...parseType({ ...options, self: options.self }, baseType) }
       , origValidator = type.validateAssign
       , typeMoniker   = options.typeMoniker
       , regExp
@@ -249,7 +254,7 @@ export function validate(baseType, validation) {
       type.origPack = undefined;
     }
 
-    return finalizeType(type);
+    return Object.assign(self, finalizeType(type));
   }
 
   Validate.isType = true;
@@ -263,7 +268,7 @@ export function reference(target) {
       name: pathToStr(options.typeMoniker),
       kind: 'reference',
       storageKinds: ['string'],
-      options: options,
+      options,
       validateData: function(value, instancePath) {
         instancePath = instancePath || options.typeMoniker;
         if (typeof value !== 'string') {
@@ -280,11 +285,39 @@ export function reference(target) {
       pack: function(value) {
         return value[value._meta.idKey];
       },
-      unpack: function(store, path) {
-        var id = store.get(path);
-        if (!id || id === '<unknown>') throw new TypeError('Cannot dereference: No "' + target + '" id present');
-        var result = store.instance.get(target.toLowerCase()).get(id);
-        if (!result) throw new TypeError('Cannot dereference: No "' + target + '" with id "' + id + '" exists');
+      unpack: function(store, storePath, instancePath, currentInstance, owner) {
+        const findCollection = () => {
+          var ancestor = owner
+            , found
+            , type
+            , collection
+            ;
+
+          while (true) {
+            if (!ancestor || !ancestor._meta) break;
+            type = ancestor._meta.type;
+            if (!type) break;
+            if (type.isCollections && type.properties[target] && type.properties[target].isCollection) {
+              collection = ancestor[target];
+              if (collection && collection._meta && (type = collection._meta.type) && type.model && type.model.prototype === Object.getPrototypeOf(owner)) {
+                found = collection;
+                break;
+              }
+            }
+            ancestor = ancestor._meta.owner;
+          }
+          return found;
+        };
+
+        var id = store.get(storePath);
+        if (!id || id === '<unknown>') throw new ReferenceError('Cannot dereference: No "' + target + '" id present');
+
+        var collection = findCollection();
+
+        if (!collection) throw new TypeError('Cannot find collection of type "' + target + '"');
+
+        var result = collection.get(id);
+        if (!result) throw new ReferenceError('Cannot dereference: No "' + target + '" with id "' + id + '" exists');
         return result;
       },
       defaultValue: function() {
@@ -302,7 +335,6 @@ export function ObjectId(options) {
   base.name = 'objectid';
   return base;
 }
-
 ObjectId.isType = true;
 
 export const Any = union(Object, Array, null, undefined, Number, Boolean, String);
@@ -317,7 +349,8 @@ function parseObjectType(options, type, arrayType) {
 
   arrayType = Boolean(arrayType);
 
-  var typeMoniker = options.typeMoniker
+  var self        = { options }
+    , typeMoniker = options.typeMoniker
     , propNames   = Object.keys(type)
     , properties  = {}
     , virtuals    = {}
@@ -329,13 +362,17 @@ function parseObjectType(options, type, arrayType) {
     , restType
     ;
 
+  if (options.self) {
+    self = Object.assign(options.self, self);
+  }
+
   if (arrayType) {
     if (!type.length) {
       return parseType(options, Array);
     }
 
     if (type.length === 1) {
-      restType = parseType({ ...options, typeMoniker: typeMoniker.concat('*') }, type[0]);
+      restType = parseType({ ...options, parent: self, self: null, typeMoniker: typeMoniker.concat('*') }, type[0]);
       propNames = [];
       methods = { ...arrayMethods };
       virtuals = { ...arrayVirtuals };
@@ -348,7 +385,7 @@ function parseObjectType(options, type, arrayType) {
     if (propNames.indexOf('*') !== -1) {
       propNames.splice(propNames.indexOf('*'), 1);
       if (!propNames.length && type['*'] === Any) return parseType(options, Object);
-      restType = parseType({ ...options, typeMoniker: typeMoniker.concat('*') }, type['*']);
+      restType = parseType({ ...options, parent: self, self: null, typeMoniker: typeMoniker.concat('*') }, type['*']);
     }
   }
 
@@ -371,7 +408,12 @@ function parseObjectType(options, type, arrayType) {
         virtuals[prop] = virtual;
       }
     } else {
-      properties[prop] = parseType({ ...options, typeMoniker: typeMoniker.concat(prop) }, type[prop]);
+      properties[prop] = parseType({
+        ...options,
+        parent: self,
+        self: null,
+        typeMoniker: typeMoniker.concat(prop)
+      }, type[prop]);
       if (properties[prop].name === 'objectid' && !meta.idKey) {
         meta.idKey = prop;
       }
@@ -381,9 +423,9 @@ function parseObjectType(options, type, arrayType) {
   thisType = {
     isType: true,
     name: pathToStr(typeMoniker),
-    kind: kind,
+    kind,
     storageKinds: [kind],
-    options: options,
+    options,
     validateData: function(value, instancePath) {
       instancePath = instancePath || typeMoniker;
       if (typeof value !== 'object') {
@@ -435,18 +477,26 @@ function parseObjectType(options, type, arrayType) {
       }
       return out;
     },
-    unpack: function(store, storePath, instancePath, currentInstance) {
-      return hydrateInstance({ ...options, prototype, store, storePath, instancePath, currentInstance });
+    unpack: function(store, storePath, instancePath, currentInstance, owner) {
+      return hydrateInstance({
+        ...options,
+        prototype,
+        store,
+        storePath,
+        instancePath,
+        currentInstance,
+        meta: { owner }
+      });
     },
     defaultValue: function() {
       var defaultValue = arrayType ? [] : {};
       Object.keys(properties).forEach(name => defaultValue[name] = properties[name].defaultValue());
       return defaultValue;
     },
-    properties: properties,
-    restType: restType,
-    methods: methods,
-    virtuals: virtuals,
+    properties,
+    restType,
+    methods,
+    virtuals,
     defaultRestProp: function() {
       if (restType) return restType.defaultValue();
     },
@@ -465,9 +515,12 @@ function parseObjectType(options, type, arrayType) {
     thisType.length = type.length;
   }
 
+  if (self.name) delete thisType.name;
+  Object.assign(self, finalizeType(thisType));
+
   prototype = hydratePrototype({
     ...options,
-    type: thisType,
+    type: self,
     typePath: typeMoniker,
     getter(name) {
       var meta = this._meta
@@ -480,7 +533,7 @@ function parseObjectType(options, type, arrayType) {
         type = restType;
         if (!name in this._meta.state) return;
       }
-      return meta.store.unpack(type, meta.storePath.concat(name), meta.instancePath.concat(name));
+      return meta.store.unpack(type, meta.storePath.concat(name), meta.instancePath.concat(name), null, this);
     },
     setter(name, value) {
       var meta = this._meta;
@@ -501,19 +554,24 @@ function parseObjectType(options, type, arrayType) {
     meta
   });
 
-  thisType.prototype = prototype;
+  self.prototype = prototype;
 
-  return finalizeType(thisType);
+  return self;
 }
 
 function anyObject(options, arrayType) {
 
   arrayType = Boolean(arrayType);
 
-  var kind = arrayType ? 'array' : 'object'
+  var self = { options }
+    , kind = arrayType ? 'array' : 'object'
     , prototype
     , thisType
     ;
+
+  if (options.self) {
+    self = Object.assign(options.self, self);
+  }
 
   function isValidObject(value, forceArray) {
     if (!isPlainObject(value) && !isArray(value)) {
@@ -560,9 +618,9 @@ function anyObject(options, arrayType) {
   thisType = {
     isType: true,
     name: pathToStr(options.typeMoniker),
-    kind: kind,
+    kind,
     storageKinds: [kind],
-    options: options,
+    options,
     validateData: function(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!isValidObject(value, arrayType)) {
@@ -581,8 +639,16 @@ function anyObject(options, arrayType) {
       }
       return clone(value);
     },
-    unpack: function(store, storePath, instancePath, currentInstance) {
-      return hydrateInstance({ ...options, prototype, store, storePath, instancePath, currentInstance });
+    unpack: function(store, storePath, instancePath, currentInstance, owner) {
+      return hydrateInstance({
+        ...options,
+        prototype,
+        store,
+        storePath,
+        instancePath,
+        currentInstance,
+        meta: { owner }
+      });
     },
     defaultValue: function() {
       return arrayType ? [] : {};
@@ -601,8 +667,10 @@ function anyObject(options, arrayType) {
     }
   };
 
+  self = Object.assign(self, finalizeType(thisType));
+
   prototype = hydratePrototype({
-    type:thisType,
+    type: self,
     typePath: options.typeMoniker,
     getter(name) {
       var meta       = this._meta
@@ -613,8 +681,13 @@ function anyObject(options, arrayType) {
         ;
 
       if (typeof propValue === 'object' && propValue !== null) {
-        type = anyObject(options.typeMoniker.concat(name), array);
-        return meta.store.unpack(type, meta.storePath.concat(name), meta.instancePath.concat(name), this);
+        type = anyObject({
+          ...options,
+          parent: self,
+          self: null,
+          typeMoniker: options.typeMoniker.concat(name)
+        }, array);
+        return meta.store.unpack(type, meta.storePath.concat(name), meta.instancePath.concat(name), null, this);
       } else {
         return propValue;
       }
@@ -631,9 +704,9 @@ function anyObject(options, arrayType) {
     virtuals: arrayType ? arrayVirtuals : {}
   });
 
-  thisType.prototype = prototype;
+  self.prototype = prototype;
 
-  return finalizeType(thisType);
+  return self;
 }
 
 function basicType(options, type) {
@@ -645,7 +718,7 @@ function basicType(options, type) {
     name: pathToStr(options.typeMoniker),
     kind: type.name,
     storageKinds: [type.name],
-    options: options,
+    options,
     validateData: function(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!type.is(value)) {
@@ -677,7 +750,7 @@ function regExp(options) {
     name: pathToStr(options.typeMoniker),
     kind: 'regexp',
     storageKinds: ['object'],
-    options: options,
+    options,
     validateData: function(value, instancePath) {
       var ok    = true
         , props = 2
@@ -752,7 +825,7 @@ function date(options) {
     name: pathToStr(options.typeMoniker),
     kind: 'date',
     storageKinds: ['string'],
-    options: options,
+    options,
     validateData: function(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (typeof value === 'string' && (new Date(value)).toJSON() === value) {
@@ -784,7 +857,7 @@ function error(options) {
     name: pathToStr(options.typeMoniker),
     kind: 'error',
     storageKinds: ['object'],
-    options: options,
+    options,
     validateData: function(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (typeof value === 'string' && (new Date(value)).toJSON() === value) {
@@ -808,12 +881,12 @@ function error(options) {
       if (currentInstance) throw new Error('Error types cannot modify a data instance');
       var value = { ...store.get(path) }
         , type  = {
-              EvalError: EvalError,
-              RangeError: RangeError,
-              ReferenceError: ReferenceError,
-              SyntaxError: SyntaxError,
-              TypeError: TypeError,
-              URIError: URIError
+              EvalError,
+              RangeError,
+              ReferenceError,
+              SyntaxError,
+              TypeError,
+              URIError
             }[value.name] || Error
         ;
 
@@ -846,8 +919,8 @@ function error(options) {
 
 
 function parseType(options, type) {
-  if (typeof type === 'function' && type.isType) return type(options);
-  if (type && type.isType) return { ...type, name: pathToStr(options.typeMoniker) };
+  if (typeof type === 'function' && type.isType && !type.storageKinds) return type(options);
+  if (type && type.isType) return type;
 
   if (type === Object) return anyObject(options, false);
   if (type === Array) return anyObject(options, true);
@@ -886,7 +959,6 @@ function parseType(options, type) {
           return actual;
         } catch (err) {
           //empty
-          console.log(err);
         }
       }
 
@@ -897,44 +969,68 @@ function parseType(options, type) {
   throw new TypeError('Unknown type ' + type);
 }
 
-function collection(schema) {
-  if (!schema.isSchema) {
-    throw new TypeError('Collection items must be Schemas');
+export function collection(model) {
+  if (!model.isModel) {
+    throw new TypeError('Collection items must be Models');
   }
   function Collection(options) {
-    var type     = {
-          '*': schema.type,
-          create: namedFunction('create' + schema.name, function() {
-            var instance = Object.create(schema.prototype)
-              , args     = Array.prototype.slice.call(arguments);
-            args.unshift(this._store);
-            return schema.apply(instance, arguments);
-          }, 'function(){\n  return new ' + schema.name + '(...arguments);\n}', !options.namedFunctions),
+    var self          = { options, isCollection: true }
+      , typeMoniker   = options.typeMoniker
+      , parentMoniker = typeMoniker.slice(0, -1)
+      , modelType     = model({
+          ...options,
+          typeMoniker: parentMoniker.concat(model.modelName),
+          parent: options.self || self,
+          self: null
+        })
+      , type          = {
+          '*': modelType,
+          create: namedFunction('create' + modelType.name, function() {
+            return this.model.apply(null, arguments);
+          }, 'function(){\n  return new ' + modelType.name + '(...arguments);\n}', !options.namedFunctions),
           get all() {
-            return Object.keys(this._meta.store.get([schema.collection.toLowerCase()])).map(id => this.get(id));
+            return Object.keys(this._meta.store.get([model.collection.toLowerCase()])).map(id => this.get(id));
+          },
+          get model() {
+            var bound = modelType.bind(null, this);
+            bound.prototype = modelType.prototype;
+            return bound;
           }
-        },
-        thisType = parseType(options, type);
-    thisType.name = 'collection(' + schema.collection + ')';
-    thisType.collection = schema.collection;
-    thisType.isCollection = true;
-    return thisType;
+        }
+      , thisType
+      ;
+
+    thisType = parseType({ ...options, self }, type);
+
+    thisType.name = 'collection(' + modelType.name + ')';
+    thisType.collection = model.collection;
+    thisType.model = modelType;
+    return Object.assign(self, thisType);
   }
 
   Collection.isType = true;
   return Collection;
 }
 
-function collections(schemas) {
+export function collections(models) {
   function Collections(options) {
-    var type = {}
-      , thisType
+    var thisType = { options, isCollections: true }
+      , type
       ;
 
-    schemas.forEach(schema => type[schema.collection] = collection(schema));
-    thisType = parseType(options, type);
-    thisType.name = 'collections(' + schemas.map(schema => schema.name).join(', ') + ')';
-    thisType.collections = Object.keys(type).map(name => type[name]);
+    type = {
+      get models() {
+        var result = {};
+        models.forEach(model => result[model.modelName] = this[model.collection].model);
+        return result;
+      }
+    };
+
+    models.forEach(model => type[model.collection] = collection(model)(options));
+
+    Object.assign(thisType, parseType({ ...options, self: thisType }, type));
+    thisType.name = 'collections(' + models.map(model => model.modelName).join(', ') + ')';
+    thisType.collections = models.map(model => type[model.collection]);
     return thisType;
   }
 
@@ -942,114 +1038,105 @@ function collections(schemas) {
   return Collections;
 }
 
-export default function schema(name, schema, options) {
-  if (isArray(name) && arguments.length === 1) {
-    return collections(name);
-  }
-  if (typeof schema !== 'object') throw new TypeError('schema definitions must be objects');
+export function model(name, model) {
+  var collection = name[0].toLowerCase() + name.substr(1);
 
-  options = { ...options || {} };
+  function Model(options) {
+    if (typeof model !== 'object') throw new TypeError('model definitions must be objects');
 
-  if (options.debug) {
-    options.freeze = true;
-    options.validate = true;
-    options.namedFunctions = true;
-  }
-
-  var resultType = parseObjectType({ ...options, typeMoniker: [name] }, schema)
-    , collection = name[0].toLowerCase() + name.substr(1)
-    , rebuild    = false
-    , idKey
-    , ResultSchema
-    ;
-
-  Object.keys(resultType.properties || {}).forEach((name) => {
-    if (resultType.properties[name].name === 'objectid') {
-      idKey = name;
-    }
-  });
-
-  if (!resultType.methods.hasOwnProperty('constructor')) {
-    schema.constructor = function() {
-    };
-    rebuild = true;
-  }
-
-  if (!idKey) {
-    if (resultType.properties.id) {
-      throw new TypeError('The "id" property of "' + name + '" must be an ObjectId');
-    }
-    schema.id = ObjectId;
-    idKey = 'id';
-    rebuild = true;
-  }
-  if (rebuild) {
-    resultType = parseObjectType({ ...options, typeMoniker: [name] }, schema);
-  }
-
-  var origConstructor = resultType.methods.constructor;
-
-  resultType.methods.constructor = namedFunction(name, function() {
-    var storeInstance
-      , path = this._meta.storePath
+    var rebuild = false
+      , ResultModel
+      , resultType
+      , idKey
       ;
 
-    storeInstance = resultType.defaultValue();
-    storeInstance[idKey] = path[path.length - 1];
-    this._meta.store.put(path, storeInstance);
+    ResultModel = namedFunction(name, function(owner) {
 
-    if (origConstructor) {
-      origConstructor.apply(this, arguments);
+      if (!(this instanceof ResultModel)) {
+        return new ResultModel(...arguments);
+      }
+
+      var args  = Array.prototype.slice.call(arguments)
+        , store = options.store
+        , id    = guid(24)
+        , storePath
+        , instancePath
+        ;
+      if (owner && owner._meta && owner._meta.store) {
+        args.shift();
+      } else {
+        owner = null;
+      }
+      if (!store || !store.isStore) {
+        throw new Error('Store needed');
+      }
+
+      storePath = (owner ? owner._meta.storePath : [collection]).concat(id);
+      instancePath = (owner ? owner._meta.instancePath : [collection]).concat(id);
+      store.unpack(resultType, storePath, instancePath, this, owner);
+      this.constructor.apply(this, args);
+    }, model.constructor, !options.namedFunctions);
+
+    resultType = parseObjectType({ ...options, self: ResultModel }, model);
+
+    Object.keys(resultType.properties || {}).forEach((name) => {
+      if (resultType.properties[name].name === 'objectid') {
+        idKey = name;
+      }
+    });
+
+    if (!resultType.methods.hasOwnProperty('constructor')) {
+      model.constructor = function(values) {
+        Object.assign(this, values);
+      };
+      rebuild = true;
     }
-  }, origConstructor || function() {}, !options.namedFunctions);
 
-  ResultSchema = namedFunction(name, function(store) {
-
-    if (!(this instanceof ResultSchema)) {
-      return new ResultSchema(...arguments);
+    if (!idKey) {
+      if (resultType.properties.id) {
+        throw new TypeError('The "id" property of "' + name + '" must be an ObjectId');
+      }
+      model.id = ObjectId;
+      idKey = 'id';
+      rebuild = true;
+    }
+    if (rebuild) {
+      resultType = parseObjectType({ ...options, self: ResultModel }, model);
     }
 
-    var args = Array.prototype.slice.call(arguments)
-      , path
-      ;
-    if (!store || !store.isStore) {
-      store = options.store;
-    } else {
-      args.shift();
-    }
-    if (!store || !store.isStore) {
-      throw new Error('Store needed');
-    }
+    var origConstructor = resultType.methods.constructor;
 
-    path = [collection, guid(24)];
-    store.unpack(resultType, path, path, this);
-    this.constructor.apply(this, args);
-  }, resultType.constructor, !options.namedFunctions);
+    resultType.methods.constructor = namedFunction(name, function() {
+      var storeInstance
+        , path = this._meta.storePath
+        ;
 
-  function hydrateFromStore(store, id) {
-    if (!store || !store.isStore) {
-      id = store;
-      store = options.store;
-    }
-    if (!store || !store.isStore) {
-      throw new Error('Store needed');
-    }
+      storeInstance = resultType.defaultValue();
+      storeInstance[idKey] = path[path.length - 1];
+      this._meta.store.put(path, storeInstance);
 
-    var path = [collection, id];
-    return store.unpack(resultType, path, path);
+      if (origConstructor) {
+        origConstructor.apply(this, arguments);
+      }
+    }, origConstructor, !options.namedFunctions);
+
+    delete resultType.name;
+
+    Object.assign(ResultModel, resultType, {
+      prototype: resultType.prototype,
+      collection,
+      model,
+      isModel: true
+    });
+
+    return ResultModel;
   }
 
-  Object.assign(ResultSchema, {
-    prototype: resultType.prototype,
-    type: resultType,
-    collection: collection,
-    options: options,
-    schema: schema,
-    hydrate: hydrateFromStore,
-    isSchema: true
-  });
-
-  return ResultSchema;
+  Model.collection = collection;
+  Model.modelName = name;
+  Model.isType = true;
+  Model.isModel = true;
+  return Model;
 }
 
 export function bare(func) {
@@ -1065,26 +1152,4 @@ export function autoResolve(func) {
   func.autoResolve = true;
   return func;
 }
-
-Object.assign(schema, {
-  Any: Any,
-  Nil: Nil,
-  ObjectId: ObjectId,
-
-  union: union,
-
-  optional: optional,
-  validate: validate,
-
-  collection: collection,
-  collections: collections,
-
-  reducer: reducer,
-  bare: bare,
-  autoResolve: autoResolve,
-
-  reference: reference,
-
-  Store: Store
-});
 
