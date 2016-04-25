@@ -1,6 +1,9 @@
 #Redux-Schema
 
 [![build status](https://img.shields.io/travis/ddsol/redux-schema.svg?style=flat-square)](https://travis-ci.org/ddsol/redux-schema)
+[![Coveralls](https://img.shields.io/coveralls/ddsol/redux-schema.svg?style=flat-square)](https://coveralls.io/github/ddsol/redux-schema)
+[![npm version](https://img.shields.io/npm/v/redux-schema.svg?style=flat-square)](https://www.npmjs.com/package/redux-schema)
+[![npm downloads](https://img.shields.io/npm/dm/redux-schema.svg?style=flat-square)](https://www.npmjs.com/package/redux-schema)
 
 ###Introduction
 
@@ -360,8 +363,10 @@ console.log(store.rootInstance.user.keys);
 ###Work in progress
 
 There's still a lot of work to be done:
- - Tests
+ - More Tests
  - Better documentation
  - Allow to set defaults
  - Code cleanup
  - Add method parameter type descriptions and automatic serialization and deserialization of arguments
+ - Automatic Promise resolution for properties
+
