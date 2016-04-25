@@ -74,6 +74,7 @@
     "babel-plugin-transform-object-assign": "^6.5.0",
     "babel-plugin-transform-object-rest-spread": "^6.3.13",
     "babel-register": "^6.3.13",
+    "chai": "^3.5.0",
     "cross-env": "^1.0.7",
     "es3ify": "^0.2.0",
     "eslint": "^1.10.3",

@@ -14,18 +14,27 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
 
   meta = { ...meta, type, typePath };
 
-  Object.defineProperty(meta, 'state', {
-    get: function() {
-      return this.store.get(this.storePath);
+  Object.defineProperties(meta, {
+    state: {
+      get: function() {
+        return this.store.get(this.storePath);
+      }
+      ,
+      set: function(value) {
+        this.store.put(this.storePath, value);
+      }
     },
-    set: function(value) {
-      this.store.put(this.storePath, value);
+    options: {
+      get: function() {
+        return this.type && this.type.options;
+      }
     }
   });
 
   define.get = {
     enumerable: true,
     value: function(propName) {
+      if (virtuals[propName]) return this[propName];
       var meta = this._meta;
       return getter.call(this, propName, meta.store, meta.storePath, meta.instancePath, this);
     }
@@ -34,6 +43,10 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
   define.set = {
     enumerable: true,
     value: function(propName, value) {
+      if (virtuals[propName]) {
+        this[propName] = value;
+        return
+      }
       var meta = this._meta;
       return setter.call(this, propName, value, meta.store, meta.storePath, meta.instancePath, this);
     }
@@ -84,7 +97,7 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
   Object.keys(methods).forEach((methodName) => {
     var invokeName = methodName
       , method     = methods[methodName]
-      , actionType = typeSnake + '_' + snakeCase(methodName)
+      , actionType = (typeSnake ? typeSnake + '_' : '') + snakeCase(methodName)
       ;
 
     if (method.noWrap) {

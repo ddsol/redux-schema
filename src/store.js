@@ -26,7 +26,7 @@ export default function Store(options) {
   }
 
   this.result = undefined;
-  this.state = undefined;
+  this.internalState = undefined;
   this.reducer = this.reducer.bind(this);
   this.store = {
     dispatch: error,
@@ -46,7 +46,7 @@ Store.prototype.setVirtual = function(obj, actionType, instancePath, setter, val
     value: value
   };
 
-  if (this.state === undefined) {
+  if (this.internalState === undefined) {
     this.store.dispatch(action);
     var result = this.result;
     this.result = undefined;
@@ -87,7 +87,7 @@ Store.prototype.invoke = function(obj, actionType, instancePath, method, args) {
     }
   }
 
-  if (this.state === undefined) {
+  if (this.internalState === undefined) {
     this.store.dispatch(action);
     result = this.result;
     this.result = undefined;
@@ -106,7 +106,7 @@ Store.prototype.invoke = function(obj, actionType, instancePath, method, args) {
         this.put(obj._meta.storePath, newState);
       }
       if ('result' in result) return result.result;
-      return this;
+      return obj;
     }
     return method.apply(obj, args);
   }
@@ -120,12 +120,12 @@ function propActionFromPath(path) {
 
 Store.prototype.put = function(path, value) {
   var action = {
-    type: 'SET_' + propActionFromPath(path),
+    type: 'SET_' + (propActionFromPath(path) || 'ROOT'),
     path: path,
     value: value
   };
 
-  if (this.state === undefined) {
+  if (this.internalState === undefined) {
     this.store.dispatch(action);
     var result = this.result;
     this.result = undefined;
@@ -150,10 +150,10 @@ Store.prototype.reducer = function(state, action) {
     state = this.schema.defaultValue();
   }
   if (!action.path) return state;
-  this.state = state;
+  this.internalState = state;
   this.result = this.executeAction(action);
-  state = this.state;
-  this.state = undefined;
+  state = this.internalState;
+  this.internalState = undefined;
   if (this.options.freeze) {
     freeze(state);
   }
@@ -161,8 +161,8 @@ Store.prototype.reducer = function(state, action) {
 };
 
 Store.prototype.getState = function() {
-  if (this.state !== undefined) {
-    return this.state;
+  if (this.internalState !== undefined) {
+    return this.internalState;
   }
   return this.store.getState();
 };
@@ -208,8 +208,8 @@ Store.prototype.executeAction = function(action) {
     , result
     ;
 
-  if ('value' in action && action.type === 'SET_' + propActionFromPath(path)) {
-    this.state = updateProperty(this.state, path, action.value);
+  if ('value' in action && action.type === 'SET_' + ( propActionFromPath(path) || 'ROOT')) {
+    this.internalState = updateProperty(this.internalState, path, action.value);
   } else {
     methodOrPropName = path.pop();
     instance = this.traversePath(path);
@@ -249,7 +249,7 @@ Store.prototype.unpack = function(type, storePath, instancePath, currentInstance
 
   path = pathToStr(instancePath);
   cached = this.cache[path];
-  if (cached && !currentInstance && result._meta && result._meta.type === cached._meta.type) {
+  if (cached && !currentInstance && result._meta && result._meta.options && result._meta.options.typeMoniker.join('.') === cached._meta.options.typeMoniker.join('.')) {
     ix = this.cachePaths.indexOf(path);
     if (ix !== -1) {
       this.cachePaths.splice(ix, 1);
@@ -268,12 +268,33 @@ Store.prototype.unpack = function(type, storePath, instancePath, currentInstance
 
 Object.defineProperties(Store.prototype, {
   instance: {
-    enumerable: false,
+    enumerable: true,
     get: function() {
       if (!this._instance) {
         this._instance = this.unpack(this.schema, [], []);
       }
       return this._instance;
+    },
+    set: function(value) {
+      this.put([], this.schema.pack(value));
+    }
+  },
+  state: {
+    enumerable: true,
+    get: Store.prototype.getState,
+    set: function(value) {
+      var message = this.schema.validateData(value);
+      if (message) throw new TypeError('Can\' assign state: ' + message);
+      this.put([], value);
+    }
+  },
+  dispatch: {
+    enumerable: true,
+    get: function() {
+      return this.store.dispatch;
+    },
+    set: function(value) {
+      this.store.dispatch = value;
     }
   },
   models: {
