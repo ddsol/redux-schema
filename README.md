@@ -1,8 +1,10 @@
 #Redux-Schema
 
+[![build status](https://img.shields.io/travis/ddsol/redux-schema.svg?style=flat-square)](https://travis-ci.org/ddsol/redux-schema)
+
 ###Introduction
 
-These are the beginnings of Redux Schema, a system to use [Redux](https://github.com/reactjs/redux) without needing to write any action creators or reducers. If you don't know what Redux is all about, you should spend some time looking at it. There's a whole community for you to connect with.
+Redux Schema is a system to use [Redux](https://github.com/reactjs/redux) without needing to write any action creators or reducers. If you don't know what Redux is all about, you should spend some time looking at it. There's a whole community for you to connect with.
 
 Redux is based on 3 principles:
 - Single source of truth

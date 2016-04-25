@@ -45,7 +45,7 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
     value: function(propName, value) {
       if (virtuals[propName]) {
         this[propName] = value;
-        return
+        return;
       }
       var meta = this._meta;
       return setter.call(this, propName, value, meta.store, meta.storePath, meta.instancePath, this);
