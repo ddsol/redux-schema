@@ -422,7 +422,7 @@ function parseObjectType(options, type, arrayType) {
 
   thisType = {
     isType: true,
-    name: pathToStr(typeMoniker),
+    name: pathToStr(typeMoniker) || arrayType ? 'array' : 'object',
     kind,
     storageKinds: [kind],
     options,
@@ -439,7 +439,9 @@ function parseObjectType(options, type, arrayType) {
             if (propNames.indexOf(name) !== -1) return null;
             return restType.validateData(value[name], instancePath.concat(name));
           } else {
-            if (propNames.indexOf(name) !== -1) return 'Unknown data property "' + pathToStr(instancePath.concat(name)) + '"';
+            if (propNames.indexOf(name) === -1) {
+              return 'Unknown data property "' + pathToStr(instancePath.concat(name)) + '"';
+            }
           }
         }, null)
       );
@@ -466,11 +468,15 @@ function parseObjectType(options, type, arrayType) {
       );
     },
     pack: function(value) {
-      var out = {};
+      var out = arrayType ? [] : {};
       propNames.forEach(name => out[name] = properties[name].pack(value[name]));
+
       if (restType) {
         Object.keys(value).forEach((name) => {
           if (propNames.indexOf(name) === -1) {
+            if ((isNaN(name) || ((Number(name) % 1) !== 0) || Number(name) < 0 || String(Number(name)) !== String(name))) {
+              throw new TypeError('Cannot set "' + pathToStr(options.typeMoniker.concat(name)) + '" property on array');
+            }
             out[name] = restType.pack(value[name]);
           }
         });
@@ -515,7 +521,9 @@ function parseObjectType(options, type, arrayType) {
     thisType.length = type.length;
   }
 
-  if (self.name) delete thisType.name;
+  if ('name' in self) {
+    delete thisType.name;
+  }
   Object.assign(self, finalizeType(thisType));
 
   prototype = hydratePrototype({
@@ -524,8 +532,16 @@ function parseObjectType(options, type, arrayType) {
     typePath: typeMoniker,
     getter(name) {
       var meta = this._meta
+        , ix = Number(name)
         , type
         ;
+
+      if (arrayType) {
+        if (isNaN(name) || ((ix % 1) !== 0) || ix < 0 || String(ix) !== String(name) || ix >= this.length) {
+          return undefined;
+        }
+      }
+
       if (propNames.indexOf(name) !== -1) {
         type = properties[name];
       } else {
@@ -536,7 +552,10 @@ function parseObjectType(options, type, arrayType) {
       return meta.store.unpack(type, meta.storePath.concat(name), meta.instancePath.concat(name), null, this);
     },
     setter(name, value) {
-      var meta = this._meta;
+      var meta = this._meta
+        , ix   = Number(name)
+        , newState
+        ;
 
       if (propNames.indexOf(name) !== -1) {
         type = properties[name];
@@ -544,6 +563,22 @@ function parseObjectType(options, type, arrayType) {
         if (!restType) throw new TypeError('Unknown property ' + pathToStr(meta.instancePath.concat(name)));
         type = restType;
       }
+
+      if (arrayType) {
+        if (isNaN(name) || ((ix % 1) !== 0) || ix < 0 || String(ix) !== String(name)) {
+          throw new TypeError('Cannot set "' + pathToStr(options.typeMoniker.concat(name)) + '" property on array');
+        }
+        newState = meta.store.get(meta.storePath);
+        if (ix > this.length) {
+          newState = newState.slice();
+          while (ix > newState.length) {
+            newState.push(type.defaultValue());
+          }
+          newState.push(type.pack(value));
+          return meta.store.put(meta.storePath, newState);
+        }
+      }
+
       meta.store.put(meta.storePath.concat(name), type.pack(value));
     }, keys() {
       return Object.keys(this._meta.state);
@@ -595,7 +630,7 @@ function anyObject(options, arrayType) {
   }
 
   function clone(obj) {
-    if (typeof value !== 'object' || value === null) {
+    if (typeof obj !== 'object' || obj === null) {
       return obj;
     }
     var out  = isArray(obj) ? [] : {}
@@ -617,7 +652,7 @@ function anyObject(options, arrayType) {
 
   thisType = {
     isType: true,
-    name: pathToStr(options.typeMoniker),
+    name: pathToStr(options.typeMoniker) || arrayType ? 'array' : 'object',
     kind,
     storageKinds: [kind],
     options,
@@ -667,6 +702,9 @@ function anyObject(options, arrayType) {
     }
   };
 
+  if ('name' in self) {
+    delete thisType.name;
+  }
   self = Object.assign(self, finalizeType(thisType));
 
   prototype = hydratePrototype({
@@ -677,8 +715,15 @@ function anyObject(options, arrayType) {
         , storeValue = meta.store.get(meta.storePath)
         , propValue  = storeValue[name]
         , array      = isArray(propValue)
+        , ix         = Number(name)
         , type
         ;
+
+      if (arrayType) {
+        if (isNaN(name) || ((ix % 1) !== 0) || ix < 0 || String(ix) !== String(name) || ix >= this.length) {
+          return undefined;
+        }
+      }
 
       if (typeof propValue === 'object' && propValue !== null) {
         type = anyObject({
@@ -692,9 +737,26 @@ function anyObject(options, arrayType) {
         return propValue;
       }
     }, setter(name, value) {
-      var meta = this._meta;
+      var meta = this._meta
+        , ix   = Number(name)
+        , newState
+        ;
       if (typeof value === 'object' && value === null && !isValidObject(value)) {
         throw new TypeError(pathToStr(options.typeMoniker.concat(name)) + ' only accepts simple types');
+      }
+      if (arrayType) {
+        if (isNaN(name) || ((ix % 1) !== 0) || ix < 0 || String(ix) !== String(name)) {
+          throw new TypeError('Cannot set "' + pathToStr(options.typeMoniker.concat(name)) + '" property on array');
+        }
+        newState = meta.store.get(meta.storePath);
+        if (ix > this.length) {
+          newState = newState.slice();
+          while (ix > newState.length) {
+            newState.push(undefined);
+          }
+          newState.push(clone(value));
+          return meta.store.put(meta.storePath, newState);
+        }
       }
       meta.store.put(meta.storePath.concat(name), clone(value));
     }, keys() {
@@ -917,7 +979,6 @@ function error(options) {
   });
 }
 
-
 function parseType(options, type) {
   if (typeof type === 'function' && type.isType && !type.storageKinds) return type(options);
   if (type && type.isType) return type;
@@ -969,7 +1030,7 @@ function parseType(options, type) {
   throw new TypeError('Unknown type ' + type);
 }
 
-export function collection(model) {
+export function collection(name, model) {
   if (!model.isModel) {
     throw new TypeError('Collection items must be Models');
   }
@@ -1041,7 +1102,7 @@ export function collections(models) {
 export function model(name, model) {
   var collection = name[0].toLowerCase() + name.substr(1);
 
-  function Model(options) {
+  function Model(options = { typeMoniker:[] }) {
     if (typeof model !== 'object') throw new TypeError('model definitions must be objects');
 
     var rebuild = false
@@ -1077,7 +1138,7 @@ export function model(name, model) {
       this.constructor.apply(this, args);
     }, model.constructor, !options.namedFunctions);
 
-    resultType = parseObjectType({ ...options, self: ResultModel }, model);
+    resultType = parseType({ ...options, self: ResultModel }, model);
 
     Object.keys(resultType.properties || {}).forEach((name) => {
       if (resultType.properties[name].name === 'objectid') {
@@ -1101,7 +1162,7 @@ export function model(name, model) {
       rebuild = true;
     }
     if (rebuild) {
-      resultType = parseObjectType({ ...options, self: ResultModel }, model);
+      resultType = parseType({ ...options, self: ResultModel }, model);
     }
 
     var origConstructor = resultType.methods.constructor;
@@ -1153,3 +1214,12 @@ export function autoResolve(func) {
   return func;
 }
 
+export function type(type) {
+  if (!type) throw new TypeError('Type expected');
+  var name = type.name || (type.constructor && type.constructor.name) || 'Type';
+  var result = namedFunction(name, function(options) {
+    return parseType(options, type);
+  });
+  result.isType = true;
+  return result;
+}
