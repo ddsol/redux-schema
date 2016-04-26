@@ -23,7 +23,7 @@
     "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd:min && node ./build/es3ify",
     "prepublish": "npm run clean && npm run check:src && npm run build",
     "coverage": "cross-env BABEL_ENV=commonjs babel-node node_modules/isparta/bin/isparta cover node_modules/mocha/bin/_mocha -- --recursive -R dot",
-    "coveralls": "npm run lint && cross-env BABEL_ENV=commonjs babel-node node_modules/isparta/bin/isparta cover node_modules/mocha/bin/_mocha --report lcovonly -- --recursive -R dot && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+    "coveralls": "npm run lint && cross-env BABEL_ENV=commonjs babel-node node_modules/isparta/bin/isparta cover node_modules/mocha/bin/_mocha --report lcovonly -- --recursive -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "repository": {
     "type": "git",
