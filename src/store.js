@@ -11,7 +11,7 @@ export default function Store(options) {
     throw new Error('Schema Store has no Redux Store assigned');
   }
 
-  var {schema, ... newOptions } = { ...{typeMoniker: []}, ...options, store: this };
+  var {schema, ... newOptions } = { ...{ typeMoniker: [] }, ...options, store: this };
 
   options = newOptions;
 

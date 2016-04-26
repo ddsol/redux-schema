@@ -1,15 +1,15 @@
 export function functionIsType(func) {
   return func && (
-    func === String
-    || func === Number
-    || func === Boolean
-    || func === Error
-    || func === RegExp
-    || func === Date
-    || func === Array
-    || func === Object
-    || func.isType === true
-  );
+      func === String
+      || func === Number
+      || func === Boolean
+      || func === Error
+      || func === RegExp
+      || func === Date
+      || func === Array
+      || func === Object
+      || func.isType === true
+    );
 }
 
 export const basicTypes = {

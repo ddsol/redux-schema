@@ -211,7 +211,7 @@ export const arrayMethods = {
       start = 0;
     }
 
-    for (var i = start, l= this.length; i < l; i++) {
+    for (var i = start, l = this.length; i < l; i++) {
       reduced = func(reduced, this.get(i), i, this);
     }
 

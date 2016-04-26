@@ -30,7 +30,7 @@ export function guid(len) {
   len = len || 24;
 
   while (id.length < len) {
-    id += uuid.v1().replace(/-/g,'');
+    id += uuid.v1().replace(/-/g, '');
   }
   return id.substr(0, len);
 }
@@ -56,7 +56,7 @@ export function pathToStr(path, delParams) {
       }
     }
   }
-  return result.replace(/^\./, '').replace(/\[\"\*\"\]/g,'[]');
+  return result.replace(/^\./, '').replace(/\[\"\*\"\]/g, '[]');
 }
 
 export function namedFunction(name, actualFunc, templateFunc, passThrough) {
@@ -86,7 +86,7 @@ export function namedFunction(name, actualFunc, templateFunc, passThrough) {
 
 export function toObject(value) {
 
-  var seenValues = []
+  var seenValues  = []
     , seenObjects = []
     ;
 
@@ -96,7 +96,7 @@ export function toObject(value) {
     if (!('keys' in value) || !('_meta' in value)) return value;
     if (value._meta.type.kind === 'array') return value.slice().map(v => internal(v));
     var result = {}
-      , ix = seenValues.indexOf(value);
+      , ix     = seenValues.indexOf(value);
 
     if (ix !== -1) {
       return seenObjects[ix];

@@ -532,7 +532,7 @@ function parseObjectType(options, type, arrayType) {
     typePath: typeMoniker,
     getter(name) {
       var meta = this._meta
-        , ix = Number(name)
+        , ix   = Number(name)
         , type
         ;
 
@@ -545,7 +545,9 @@ function parseObjectType(options, type, arrayType) {
       if (propNames.indexOf(name) !== -1) {
         type = properties[name];
       } else {
-        if (!restType) throw new TypeError('Unknown property ' + pathToStr(meta.instancePath.concat(name)));
+        if (!restType) {
+          return;
+        }
         type = restType;
         if (!name in this._meta.state) return;
       }
@@ -777,7 +779,7 @@ function basicType(options, type) {
 
   return finalizeType({
     isType: true,
-    name: pathToStr(options.typeMoniker),
+    name: pathToStr(options.typeMoniker) || type.name,
     kind: type.name,
     storageKinds: [type.name],
     options,
@@ -807,9 +809,11 @@ function basicType(options, type) {
 }
 
 function regExp(options) {
+  var name = pathToStr(options.typeMoniker) || 'regexp';
+
   return finalizeType({
     isType: true,
-    name: pathToStr(options.typeMoniker),
+    name: name,
     kind: 'regexp',
     storageKinds: ['object'],
     options,
@@ -825,7 +829,7 @@ function regExp(options) {
       if (
         !value
         || typeof value !== 'object'
-        || Object.keys.length(value) !== props
+        || Object.keys(value).length !== props
         || typeof value.pattern !== 'string'
         || typeof value.flags !== 'string'
       ) {
@@ -843,13 +847,13 @@ function regExp(options) {
         }
       }
       if (!ok) {
-        return 'Type of "' + pathToStr(instancePath) + '" data must be RegExp data object';
+        return 'Type of "' + (pathToStr(instancePath) || name) + '" data must be RegExp data object';
       }
     },
     validateAssign: function(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!(value instanceof RegExp)) {
-        return 'Type of "' + pathToStr(instancePath) + '" must be RegExp';
+        return 'Type of "' + (pathToStr(instancePath) || name) + '" must be RegExp';
       }
     },
     pack: function(value) {
@@ -882,22 +886,23 @@ function regExp(options) {
 }
 
 function date(options) {
+  var name = pathToStr(options.typeMoniker) || 'date';
   return finalizeType({
     isType: true,
-    name: pathToStr(options.typeMoniker),
+    name: name,
     kind: 'date',
     storageKinds: ['string'],
     options,
     validateData: function(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
-      if (typeof value === 'string' && (new Date(value)).toJSON() === value) {
-        return 'Type of "' + pathToStr(instancePath) + '" data must be Date string';
+      if (value !== '' && (typeof value !== 'string' || (new Date(value)).toJSON() !== value)) {
+        return 'Type of "' + (pathToStr(instancePath) || name) + '" data must be Date string';
       }
     },
     validateAssign: function(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!(value instanceof Date)) {
-        return 'Type of "' + pathToStr(instancePath) + '" must be Date';
+        return 'Type of "' + (pathToStr(instancePath) || name) + '" must be Date';
       }
     },
     pack: function(value) {
@@ -914,22 +919,24 @@ function date(options) {
 }
 
 function error(options) {
+  var name = pathToStr(options.typeMoniker) || 'error';
+
   return finalizeType({
     isType: true,
-    name: pathToStr(options.typeMoniker),
+    name: name,
     kind: 'error',
     storageKinds: ['object'],
     options,
     validateData: function(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
-      if (typeof value === 'string' && (new Date(value)).toJSON() === value) {
-        return 'Type of "' + pathToStr(instancePath) + '" data must be and Error object';
+      if (!isPlainObject(value) || (typeof value.name !== 'string') || (typeof value.message !== 'string')) {
+        return 'Type of "' + (pathToStr(instancePath) || name) + '" data must be and Error object';
       }
     },
     validateAssign: function(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!(value instanceof Error)) {
-        return 'Type of "' + pathToStr(instancePath) + '" must be Error';
+        return 'Type of "' + (pathToStr(instancePath) || name) + '" must be Error';
       }
     },
     pack: function(value) {
@@ -959,8 +966,7 @@ function error(options) {
         delete value.name;
       }
 
-      return {
-        ...Object.create(type.prototype),
+      return Object.assign(Object.create(type.prototype), {
         ...value,
         toString() {
           return this.message ? this.name + ': ' + this.message : this.name;
@@ -968,7 +974,7 @@ function error(options) {
         inspect() {
           return '[' + this.toString() + ']';
         }
-      };
+      });
     },
     defaultValue: function() {
       return {
@@ -1030,7 +1036,7 @@ function parseType(options, type) {
   throw new TypeError('Unknown type ' + type);
 }
 
-export function collection(name, model) {
+export function collection(model) {
   if (!model.isModel) {
     throw new TypeError('Collection items must be Models');
   }
@@ -1102,7 +1108,7 @@ export function collections(models) {
 export function model(name, model) {
   var collection = name[0].toLowerCase() + name.substr(1);
 
-  function Model(options = { typeMoniker:[] }) {
+  function Model(options = { typeMoniker: [] }) {
     if (typeof model !== 'object') throw new TypeError('model definitions must be objects');
 
     var rebuild = false

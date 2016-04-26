@@ -164,7 +164,7 @@ export function hydrateInstance({ prototype, store, storePath, instancePath, cur
   });
 
   if (freeze) {
-    freezeObject(meta);
+    freezeObject(instance);
   }
 
   return instance;
