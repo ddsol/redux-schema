@@ -29,6 +29,23 @@ describe('Object (plain)', () => {
       kind: 'object',
       storageKinds: ['object']
     }));
+
+    it('should treat {} and Object as equivalent', () => {
+      var type1 = new Store({ schema: type({}) }).schema
+        , type2 = new Store({ schema: type(Object) }).schema
+        , prop1
+        , prop2
+        ;
+
+      for (var prop in baseTypeProperties) {
+        if (prop === 'options') return;
+        prop1 = type1[prop];
+        prop2 = type2[prop];
+        if (typeof prop1 === 'function') prop1 = String(prop1);
+        if (typeof prop2 === 'function') prop2 = String(prop2);
+        expect(prop1).to.deep.equal(prop2);
+      }
+    });
   });
 
   context('instance', () => {
