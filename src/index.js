@@ -299,7 +299,7 @@ export function reference(target) {
             if (!type) break;
             if (type.isCollections && type.properties[target] && type.properties[target].isCollection) {
               collection = ancestor[target];
-              if (collection && collection._meta && (type = collection._meta.type) && type.model && type.model.prototype === Object.getPrototypeOf(owner)) {
+              if (collection && collection._meta && (type = collection._meta.type) && type.model) {
                 found = collection;
                 break;
               }

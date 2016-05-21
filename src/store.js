@@ -37,7 +37,7 @@ export default function Store(options) {
   this.maxCache = 1024;
   this.cache = {};
   this.cachePaths = [];
-}
+};
 
 Store.prototype.setVirtual = function(obj, actionType, instancePath, setter, value) {
   var action = {

@@ -48,7 +48,7 @@ describe('Date', () => {
       expect(() => store.state = 0).to.throw(TypeError);
     });
 
-    it('should allow assignment and retrieveal of a date object', () => {
+    it('should allow assignment and retrieval of a date object', () => {
       var dateIn = new Date()
         , dateOut
         ;
