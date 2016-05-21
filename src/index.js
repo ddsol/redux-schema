@@ -100,10 +100,10 @@ export function union() {
           if (!handlersById[value.type]) {
             return 'Unexpected type "' + value.type + '" for union "' + pathToStr(instancePath) + '"';
           }
-          return handlersById[value.type].validateData(value.data, instancePath);
+          return handlersById[value.type].validateData(value.value, instancePath);
         }
         return (
-          !handlers.some(handler => handler.validateData(value, instancePath))
+          handlers.every(handler => handler.validateData(value, instancePath))
           && 'No matching data type for union "' + pathToStr(instancePath) + '"'
         );
       },

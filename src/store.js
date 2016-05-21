@@ -284,7 +284,7 @@ Object.defineProperties(Store.prototype, {
     get: Store.prototype.getState,
     set: function(value) {
       var message = this.schema.validateData(value);
-      if (message) throw new TypeError('Can\' assign state: ' + message);
+      if (message) throw new TypeError('Can\'t assign state: ' + message);
       this.put([], value);
     }
   },
