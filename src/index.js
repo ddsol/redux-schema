@@ -600,8 +600,10 @@ function anyObject(options, arrayType) {
 
   arrayType = Boolean(arrayType);
 
-  var self = { options }
-    , kind = arrayType ? 'array' : 'object'
+  var self       = { options }
+    , kind       = arrayType ? 'array' : 'object'
+    , storedKeys = []
+    , storedState
     , prototype
     , thisType
     ;
@@ -762,7 +764,12 @@ function anyObject(options, arrayType) {
       }
       meta.store.put(meta.storePath.concat(name), clone(value));
     }, keys() {
-      return Object.keys(this._meta.state);
+      var state = this._meta.state;
+      if (storedState !== state) {
+        storedKeys = Object.keys(state);
+        storedState = state;
+      }
+      return storedKeys;
     },
     methods: arrayType ? arrayMethods : {},
     virtuals: arrayType ? arrayVirtuals : {}
@@ -1056,12 +1063,16 @@ export function collection(model) {
             return this.model.apply(null, arguments);
           }, 'function(){\n  return new ' + modelType.name + '(...arguments);\n}', !options.namedFunctions),
           get all() {
-            return Object.keys(this._meta.store.get([model.collection.toLowerCase()])).map(id => this.get(id));
+            return this.keys.map(id => this.get(id));
           },
           get model() {
             var bound = modelType.bind(null, this);
             bound.prototype = modelType.prototype;
             return bound;
+          },
+          delete(id) {
+            if (!this[id]) throw new Error(`Could not delete ${modelType.name}[${id}]: object not found`);
+            this[id] = undefined;
           }
         }
       , thisType
