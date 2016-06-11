@@ -1,17 +1,13 @@
 import { snakeCase, pathToStr } from './utils';
 
-function freeze(obj) {
-  if (Object.freeze) {
-    Object.freeze(obj);
-  }
-}
+const freeze = Object.freeze ? Object.freeze.bind(Object) : () => {};
 
 export default function Store(options) {
   function error() {
     throw new Error('Schema Store has no Redux Store assigned');
   }
 
-  var {schema, ... newOptions } = { ...{ typeMoniker: [] }, ...options, store: this };
+  let { schema, ... newOptions } = { ...{ typeMoniker: [] }, ...options, store: this };
 
   options = newOptions;
 
@@ -40,7 +36,7 @@ export default function Store(options) {
 };
 
 Store.prototype.setVirtual = function(obj, actionType, instancePath, setter, value) {
-  var action = {
+  let action = {
     type: actionType,
     path: instancePath,
     value: value
@@ -48,7 +44,7 @@ Store.prototype.setVirtual = function(obj, actionType, instancePath, setter, val
 
   if (this.internalState === undefined) {
     this.store.dispatch(action);
-    var result = this.result;
+    let result = this.result;
     this.result = undefined;
     return result;
   } else {
@@ -59,7 +55,7 @@ Store.prototype.setVirtual = function(obj, actionType, instancePath, setter, val
 };
 
 Store.prototype.invoke = function(obj, actionType, instancePath, method, args) {
-  var self   = this
+  let self   = this
     , action = {
         type: actionType,
         path: instancePath,
@@ -113,21 +109,21 @@ Store.prototype.invoke = function(obj, actionType, instancePath, method, args) {
 };
 
 function propActionFromPath(path) {
-  var base = path.slice();
+  let base = path.slice();
   base.splice(1, 1);
   return base.map(snakeCase).join('_');
 }
 
 Store.prototype.put = function(path, value) {
-  var action = {
-    type: 'SET_' + (propActionFromPath(path) || 'ROOT'),
+  let action = {
+    type: `SET_${propActionFromPath(path) || 'ROOT'}`,
     path: path,
     value: value
   };
 
   if (this.internalState === undefined) {
     this.store.dispatch(action);
-    var result = this.result;
+    let result = this.result;
     this.result = undefined;
     return result;
   } else {
@@ -136,7 +132,7 @@ Store.prototype.put = function(path, value) {
 };
 
 Store.prototype.get = function(path) {
-  var toGo    = path.slice()
+  let toGo    = path.slice()
     , current = this.getState()
     ;
   while (current && toGo.length) {
@@ -171,7 +167,7 @@ Store.prototype.executeAction = function(action) {
 
   function updateProperty(state, path, value) {
     if (!path.length) return value;
-    var name    = path[0]
+    let name    = path[0]
       , prop    = state[name]
       , updated = updateProperty(prop, path.slice(1), value)
       , newState
@@ -202,13 +198,13 @@ Store.prototype.executeAction = function(action) {
     }
   }
 
-  var path = action.path.slice()
+  let path = action.path.slice()
     , methodOrPropName
     , instance
     , result
     ;
 
-  if ('value' in action && action.type === 'SET_' + ( propActionFromPath(path) || 'ROOT')) {
+  if ('value' in action && action.type === `SET_${propActionFromPath(path) || 'ROOT'}`) {
     this.internalState = updateProperty(this.internalState, path, action.value);
   } else {
     methodOrPropName = path.pop();
@@ -226,20 +222,20 @@ Store.prototype.executeAction = function(action) {
 };
 
 Store.prototype.traversePath = function(path) {
-  var toGo    = path.slice()
+  let toGo    = path.slice()
     , current = this.instance
     ;
   while (current && toGo.length) {
     current = current.get(toGo.shift());
   }
   if (!current) {
-    throw new Error('Path "' + path.join('.') + '" not found in state.');
+    throw new Error(`Path "${path.join('.')}" not found in state.`);
   }
   return current;
 };
 
 Store.prototype.unpack = function(type, storePath, instancePath, currentInstance, owner) {
-  var path
+  let path
     , cached
     , result
     , ix
@@ -283,8 +279,8 @@ Object.defineProperties(Store.prototype, {
     enumerable: true,
     get: Store.prototype.getState,
     set: function(value) {
-      var message = this.schema.validateData(value);
-      if (message) throw new TypeError('Can\'t assign state: ' + message);
+      let message = this.schema.validateData(value);
+      if (message) throw new TypeError(`Can't assign state: ${message}`);
       this.put([], value);
     }
   },

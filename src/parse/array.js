@@ -14,14 +14,14 @@ export const arrayMethods = {
   }),
 
   copyWithin: reducer(function(state, args) {
-    var dupe = state.slice();
+    let dupe = state.slice();
     return dupe.copyWithin.apply(dupe, args);
   }),
 
   every: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(func + ' is not a function');
+    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
 
-    for (var i = 0, l = this.length; i < l; i++) {
+    for (let i = 0, l = this.length; i < l; i++) {
       if (!func.call(thisArg, this.get(i), i, this)) return false;
     }
     return true;
@@ -44,19 +44,19 @@ export const arrayMethods = {
       end = Math.min(this.length, end);
     }
 
-    for (var i = start; i < end; i++) {
+    for (let i = start; i < end; i++) {
       this.set(i, value);
     }
     return this;
   },
 
   filter: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(func + ' is not a function');
+    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
 
-    var result = []
+    let result = []
       , item;
 
-    for (var i = 0, l = this.length; i < l; i++) {
+    for (let i = 0, l = this.length; i < l; i++) {
       item = this.get(i);
       if (func.call(thisArg, item, i, this)) {
         result.push(item);
@@ -67,10 +67,10 @@ export const arrayMethods = {
   }),
 
   find: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(func + ' is not a function');
+    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
 
-    var item;
-    for (var i = 0, l = this.length; i < l; i++) {
+    let item;
+    for (let i = 0, l = this.length; i < l; i++) {
       item = this.get(i);
       if (func.call(thisArg, item, i, this)) {
         return item;
@@ -79,10 +79,10 @@ export const arrayMethods = {
   }),
 
   findIndex: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(func + ' is not a function');
+    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
 
-    var item;
-    for (var i = 0, l = this.length; i < l; i++) {
+    let item;
+    for (let i = 0, l = this.length; i < l; i++) {
       item = this.get(i);
       if (func.call(thisArg, item, i, this)) {
         return i;
@@ -91,9 +91,9 @@ export const arrayMethods = {
   }),
 
   forEach: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(func + ' is not a function');
+    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
 
-    for (var i = 0, l = this.length; i < l; i++) {
+    for (let i = 0, l = this.length; i < l; i++) {
       func.call(thisArg, this.get(i), i, this);
     }
   }),
@@ -105,10 +105,8 @@ export const arrayMethods = {
       start = Math.max(0, start + this.length);
     }
 
-    var i;
-
     if (item !== item) { //NaN check
-      for (i = start; i < this.length; i++) {
+      for (let i = start; i < this.length; i++) {
         item = this.get(i);
         if (item !== item) {
           return true;
@@ -117,7 +115,7 @@ export const arrayMethods = {
       return false;
     }
 
-    for (i = start; i < this.length; i++) {
+    for (let i = start; i < this.length; i++) {
       if (item === this.get(i)) {
         return true;
       }
@@ -133,7 +131,7 @@ export const arrayMethods = {
       start = Math.max(0, this.length + start);
     }
 
-    for (var i = start; i < this.length; i++) {
+    for (let i = start; i < this.length; i++) {
       if (item === this.get(i)) {
         return i;
       }
@@ -142,8 +140,8 @@ export const arrayMethods = {
   }),
 
   join: bare(function(separator) {
-    var result = [];
-    for (var i = 0; i < this.length; i++) {
+    let result = [];
+    for (let i = 0; i < this.length; i++) {
       result.push(this.get(i));
     }
     return result.join(separator);
@@ -156,7 +154,7 @@ export const arrayMethods = {
       start = Math.max(0, start + this.length);
     }
 
-    for (var i = start; i >= 0; i--) {
+    for (let i = start; i >= 0; i--) {
       if (item === this.get(i)) {
         return i;
       }
@@ -165,11 +163,11 @@ export const arrayMethods = {
   }),
 
   map: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(func + ' is not a function');
+    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
 
-    var result = [];
+    let result = [];
 
-    for (var i = 0, l = this.length; i < l; i++) {
+    for (let i = 0, l = this.length; i < l; i++) {
       result.push(func.call(thisArg, this.get(i), i, this));
     }
 
@@ -177,7 +175,7 @@ export const arrayMethods = {
   }),
 
   pop: reducer(function(state, args, result) {
-    var newState = state.slice();
+    let newState = state.slice();
     result.result = this.get(newState.length - 1);
     if (result.result && typeof result.result.toObject === 'function') {
       result.result = result.result.toObject();
@@ -187,7 +185,7 @@ export const arrayMethods = {
   }),
 
   push: reducer(function(state, args, result) {
-    var newState = state.slice()
+    let newState = state.slice()
       , type     = this._meta.type
       ;
 
@@ -197,8 +195,8 @@ export const arrayMethods = {
   }),
 
   reduce: bare(function(func, initialValue) {
-    if (typeof func !== 'function') throw new TypeError(func + ' is not a function');
-    var reduced
+    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    let reduced
       , start
       ;
 
@@ -211,7 +209,7 @@ export const arrayMethods = {
       start = 0;
     }
 
-    for (var i = start, l = this.length; i < l; i++) {
+    for (let i = start, l = this.length; i < l; i++) {
       reduced = func(reduced, this.get(i), i, this);
     }
 
@@ -219,8 +217,8 @@ export const arrayMethods = {
   }),
 
   reduceRight: bare(function(func, initialValue) {
-    if (typeof func !== 'function') throw new TypeError(func + ' is not a function');
-    var reduced
+    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    let reduced
       , start
       ;
 
@@ -233,7 +231,7 @@ export const arrayMethods = {
       start = this.length - 1;
     }
 
-    for (var i = start; i >= 0; i--) {
+    for (let i = start; i >= 0; i--) {
       reduced = func(reduced, this.get(i), i, this);
     }
 
@@ -246,7 +244,7 @@ export const arrayMethods = {
   }),
 
   shift: reducer(function(state, args, result) {
-    var newState = state.slice();
+    let newState = state.slice();
     result.result = this.get(0);
     if (result.result && typeof result.result.toObject === 'function') {
       result.result = result.result.toObject();
@@ -261,29 +259,29 @@ export const arrayMethods = {
     end = end || this.length;
     if (end < 0) end += this.length;
 
-    var result = [];
+    let result = [];
 
-    for (var i = start; i < end; i++) {
+    for (let i = start; i < end; i++) {
       result.push(this.get(i));
     }
     return result;
   }),
 
   some: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(func + ' is not a function');
+    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
 
-    for (var i = 0, l = this.length; i < l; i++) {
+    for (let i = 0, l = this.length; i < l; i++) {
       if (func.call(thisArg, this.get(i), i, this)) return true;
     }
     return false;
   }),
 
   sort: reducer(function(state, args) {
-    var order = []
+    let order = []
       , func  = args[0]
       ;
 
-    for (var i = 0; i < state.length; i++) order.push(i);
+    for (let i = 0; i < state.length; i++) order.push(i);
 
     if (typeof func !== 'function') {
       func = function(a, b) {
@@ -308,7 +306,7 @@ export const arrayMethods = {
   }),
 
   splice: reducer(function(state, args, result) {
-    var start    = args[0] || 0
+    let start    = args[0] || 0
       , delCount = args[1] || 0
       , rest     = args.slice(2)
       ;
@@ -322,13 +320,13 @@ export const arrayMethods = {
       rest = rest.map((item, ix) => this._meta.type.packProp(ix, item));
     }
 
-    var newState = state.slice();
+    let newState = state.slice();
     result.result = newState.splice.apply(newState, [start, delCount].concat(rest));
     return newState;
   }),
 
   toLocaleString: bare(function() {
-    var plain = this.slice();
+    let plain = this.slice();
     return plain.toLocaleString ? plain.toLocaleString.apply(plain, arguments) : plain.toString();
   }),
 
@@ -337,7 +335,7 @@ export const arrayMethods = {
   }),
 
   unshift: reducer(function(state, args, result) {
-    var newState = state.slice()
+    let newState = state.slice()
       , type     = this._meta.type
       ;
 
@@ -358,7 +356,7 @@ export const arrayVirtuals = {
     },
     set: function(value) {
       if (this._meta.type.length > 1) throw new TypeError('Cannot change the length of a tuple array');
-      var newState        = this._meta.state.slice(0, value)
+      let newState        = this._meta.state.slice(0, value)
         , defaultRestProp = this._meta.type.defaultRestProp.bind(this._meta.type) || (v => undefined)
         ;
 

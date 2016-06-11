@@ -1,4 +1,4 @@
-import { snakeCase, pathToStr, namedFunction, toObject } from './utils';
+import { snakeCase, pathToStr, namedFunction, toObject } from '../utils';
 
 function freezeObject(obj) {
   if (Object.freeze) {
@@ -7,7 +7,7 @@ function freezeObject(obj) {
 }
 
 export function hydratePrototype({ type, typePath, getter, setter, keys, properties = {}, methods = {}, virtuals = {}, meta = {}, freeze, namedFunctions }) {
-  var prototype = Object.create(type.kind === 'array' ? Array.prototype : Object.prototype)
+  let prototype = Object.create(type.kind === 'array' ? Array.prototype : Object.prototype)
     , define    = {}
     , typeSnake = snakeCase(pathToStr(typePath)).replace('.', '_')
     ;
@@ -35,7 +35,7 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
     enumerable: true,
     value: function(propName) {
       if (virtuals[propName]) return this[propName];
-      var meta = this._meta;
+      let meta = this._meta;
       return getter.call(this, propName, meta.store, meta.storePath, meta.instancePath, this);
     }
   };
@@ -47,7 +47,7 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
         this[propName] = value;
         return;
       }
-      var meta = this._meta;
+      let meta = this._meta;
       return setter.call(this, propName, value, meta.store, meta.storePath, meta.instancePath, this);
     }
   };
@@ -84,18 +84,18 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
     define[propName] = {
       enumerable: true,
       get: function() {
-        var meta = this._meta;
+        let meta = this._meta;
         return getter.call(this, propName, meta.store, meta.storePath, meta.instancePath, meta.instance);
       },
       set: function(value) {
-        var meta = this._meta;
+        let meta = this._meta;
         return setter.call(this, propName, value, meta.store, meta.storePath, meta.instancePath, meta.instance);
       }
     };
   });
 
   Object.keys(methods).forEach((methodName) => {
-    var invokeName = methodName
+    let invokeName = methodName
       , method     = methods[methodName]
       , actionType = (typeSnake ? typeSnake + '_' : '') + snakeCase(methodName)
       ;
@@ -111,18 +111,18 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
       }
       define[methodName] = {
         enumerable: true,
-        value: namedFunction(invokeName, function invokeMethod() {
-          var meta = this._meta
+        value: namedFunction(invokeName, function invokeMethod(...args) {
+          let meta = this._meta
             , path = meta.instancePath.concat(methodName)
             ;
-          return meta.store.invoke(this, actionType, path, methods[methodName], Array.prototype.slice.call(arguments));
+          return meta.store.invoke(this, actionType, path, methods[methodName], args);
         }, method, !namedFunctions)
       };
     }
   });
 
   Object.keys(virtuals).forEach((virtualName) => {
-    var actionType = typeSnake + '_SET_' + snakeCase(virtualName)
+    let actionType = `${typeSnake}_SET_${snakeCase(virtualName)}`
       , prop       = virtuals[virtualName]
       ;
 
@@ -130,7 +130,7 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
       enumerable: true,
       get: prop.get,
       set: function(value) {
-        var meta             = this._meta
+        let meta             = this._meta
           , propInstancePath = meta.instancePath.concat(virtualName)
           ;
         meta.store.setVirtual(this, actionType, propInstancePath, prop.set, value);
@@ -146,7 +146,7 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
 }
 
 export function hydrateInstance({ prototype, store, storePath, instancePath, currentInstance, meta, freeze }) {
-  var instance = currentInstance || Object.create(prototype);
+  let instance = currentInstance || Object.create(prototype);
 
   meta = Object.assign(Object.create(instance._meta), meta);
 

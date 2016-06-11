@@ -1,6 +1,6 @@
 import uuidImport from 'node-uuid';
 
-var uuid = uuidImport.noConflict ? uuidImport.noConflict() : uuidImport;
+let uuid = uuidImport.noConflict ? uuidImport.noConflict() : uuidImport;
 
 export function isArray(arr) {
   //Adapted from extend, Copyright (c) 2014 Stefan Thomas, MIT license
@@ -15,18 +15,21 @@ export function isPlainObject(obj) {
   if (!obj || Object.prototype.toString.call(obj) !== '[object Object]') {
     return false;
   }
-  var hasOwnConstructor = Object.prototype.hasOwnProperty.call(obj, 'constructor');
-  var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && Object.prototype.hasOwnProperty.call(obj.constructor.prototype, 'isPrototypeOf');
+
+  let hasOwnConstructor = Object.prototype.hasOwnProperty.call(obj, 'constructor')
+    , hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && Object.prototype.hasOwnProperty.call(obj.constructor.prototype, 'isPrototypeOf')
+    , key
+    ;
+
   if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
     return false;
   }
-  var key;
   for (key in obj) {/**/}
   return typeof key === 'undefined' || Object.prototype.hasOwnProperty.call(obj, key);
 }
 
 export function guid(len) {
-  var id = '';
+  let id = '';
   len = len || 24;
 
   while (id.length < len) {
@@ -38,10 +41,10 @@ export function guid(len) {
 export let snakeCase = camelCase => String(camelCase).replace(/[A-Z]/g, v=>'_' + v).toUpperCase().replace(/^_/, '');
 
 export function pathToStr(path, delParams) {
-  var result = ''
+  let result = ''
     , item
     ;
-  for (var i = 0; i < path.length; i++) {
+  for (let i = 0; i < path.length; i++) {
     item = path[i];
     if (delParams) {
       item = item.replace(/\(.*/, '');
@@ -50,9 +53,9 @@ export function pathToStr(path, delParams) {
       result += '.' + path[i];
     } else {
       if (String(Math.round(Number(item))) === item) {
-        result += '[' + item + ']';
+        result += `[${item}]`;
       } else {
-        result += '[' + JSON.stringify(String(item)) + ']';
+        result += `[${JSON.stringify(String(item))}]`;
       }
     }
   }
@@ -67,26 +70,30 @@ export function namedFunction(name, actualFunc, templateFunc, passThrough) {
     templateFunc = actualFunc;
   }
 
-  var f = actualFunc; // eslint-disable-line
+  let f = actualFunc // eslint-disable-line
+    , funcText
+    , signature
+    , func
+    ;
 
   if (typeof actualFunc !== 'function') throw new TypeError('Parameter to namedFunction must be a function');
 
-  var funcText = templateFunc.toString();
+  funcText = templateFunc.toString();
 
-  var signature = /\([^\)]*\)/.exec(funcText)[0];
+  signature = /\([^\)]*\)/.exec(funcText)[0];
 
   funcText = funcText.replace(/^[^{]+\{|}$/g, '');
 
-  var func = eval('(function(){function ' + name + signature + '{/*' + funcText.replace(/\*\//g, '* /') + '*/return f.apply(this,arguments);}return ' + name + '}())'); // eslint-disable-line
+  func = eval(`(function(){function ${name + signature}{/*${funcText.replace(/\*\//g, '* /')}*/return f.apply(this,arguments);}return ${name}}())`); // eslint-disable-line
   func.toString = function() {
-    return 'function ' + name + signature + '{' + funcText + '}';
+    return `function ${name + signature}{${funcText}}`;
   };
   return func;
 }
 
 export function toObject(value) {
 
-  var seenValues  = []
+  let seenValues  = []
     , seenObjects = []
     ;
 
@@ -95,8 +102,9 @@ export function toObject(value) {
     if (typeof value !== 'object' || !value) return value;
     if (!('keys' in value) || !('_meta' in value)) return value;
     if (value._meta.type.kind === 'array') return value.slice().map(v => internal(v));
-    var result = {}
-      , ix     = seenValues.indexOf(value);
+    let result = {}
+      , ix     = seenValues.indexOf(value)
+      ;
 
     if (ix !== -1) {
       return seenObjects[ix];
@@ -112,4 +120,23 @@ export function toObject(value) {
   }
 
   return internal(value);
+}
+
+export function dedent(strings, ...args) {
+  let string = strings
+    .map((str, i) => (i === 0 ? '' : args[i - 1]) + str)
+    .join('')
+    , match = /^\n( *)/.exec(string)
+    , len
+    , replace
+    ;
+
+  if (!match) return string;
+
+  len = match[1].length;
+
+  replace = new RegExp(`\\n {${len}}`,'g');
+  console.log(replace, len);
+
+  return string.replace(replace, '\n').substr(1);
 }
