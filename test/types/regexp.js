@@ -6,7 +6,7 @@ import { baseTypeProperties, checkProperties } from './utils';
 should();
 
 describe('RegExp', () => {
-  var schema
+  let schema
     , store
     , actions
     ;
@@ -16,7 +16,7 @@ describe('RegExp', () => {
     store.store = createStore(store.reducer);
     schema = store.schema;
     actions = [];
-    var origDispatch = store.dispatch;
+    let origDispatch = store.dispatch;
     store.dispatch = function(action) {
       actions.push(action);
       return origDispatch(action);
@@ -33,7 +33,7 @@ describe('RegExp', () => {
 
   context('instance', () => {
     it('should be empty regexp by default ', () => {
-      var v = store.instance;
+      let v = store.instance;
       v.should.be.instanceOf(RegExp);
       String(v).should.match(/^[^a-z]*$/i);
     });
@@ -47,7 +47,7 @@ describe('RegExp', () => {
     });
 
     it('should allow assignment and retrieval of a RegExp object', () => {
-      var regExpIn = /test[abc](12|34)(:?foo)/i
+      let regExpIn = /test[abc](12|34)(:?foo)/i
         , regExpOut
         ;
 

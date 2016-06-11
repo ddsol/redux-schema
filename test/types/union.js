@@ -6,7 +6,7 @@ import { baseTypeProperties, checkProperties } from './utils';
 should();
 
 describe('Union', () => {
-  var schema
+  let schema
     , store
     , actions
     ;
@@ -17,7 +17,7 @@ describe('Union', () => {
       store.store = createStore(store.reducer);
       schema = store.schema;
       actions = [];
-      var origDispatch = store.dispatch;
+      let origDispatch = store.dispatch;
       store.dispatch = function(action) {
         actions.push(action);
         return origDispatch(action);
@@ -38,7 +38,7 @@ describe('Union', () => {
         store.store = createStore(store.reducer);
         schema = store.schema;
         actions = [];
-        var origDispatch = store.dispatch;
+        let origDispatch = store.dispatch;
         store.dispatch = function(action) {
           actions.push(action);
           return origDispatch(action);
@@ -75,7 +75,7 @@ describe('Union', () => {
         store.store = createStore(store.reducer);
         schema = store.schema;
         actions = [];
-        var origDispatch = store.dispatch;
+        let origDispatch = store.dispatch;
         store.dispatch = function(action) {
           actions.push(action);
           return origDispatch(action);

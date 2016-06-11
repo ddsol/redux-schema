@@ -6,7 +6,7 @@ import { baseTypeProperties, checkProperties } from './utils';
 should();
 
 describe('Object (defined)', () => {
-  var schema
+  let schema
     , store
     , actions
     ;
@@ -16,7 +16,7 @@ describe('Object (defined)', () => {
     store.store = createStore(store.reducer);
     schema = store.schema;
     actions = [];
-    var origDispatch = store.dispatch;
+    let origDispatch = store.dispatch;
     store.dispatch = function(action) {
       actions.push(action);
       return origDispatch(action);
@@ -59,7 +59,7 @@ describe('Object (defined)', () => {
 
     context('#get', () => {
       it('should not mutate the object', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.get('v');
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -81,7 +81,7 @@ describe('Object (defined)', () => {
 
     context('#set', () => {
       it('should mutate the object', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.set('v', 3);
         actions.should.have.length(1);
         store.state.should.not.equal(pre);

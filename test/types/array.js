@@ -6,7 +6,7 @@ import { baseTypeProperties, checkProperties } from './utils';
 should();
 
 describe('Array (plain)', () => {
-  var schema
+  let schema
     , store
     , actions
     ;
@@ -16,7 +16,7 @@ describe('Array (plain)', () => {
     store.store = createStore(store.reducer);
     schema = store.schema;
     actions = [];
-    var origDispatch = store.dispatch;
+    let origDispatch = store.dispatch;
     store.dispatch = function(action) {
       actions.push(action);
       return origDispatch(action);
@@ -31,13 +31,13 @@ describe('Array (plain)', () => {
     }));
 
     it('should treat [] and Array as equivalent', () => {
-      var type1 = new Store({ schema: type([]) }).schema
+      let type1 = new Store({ schema: type([]) }).schema
         , type2 = new Store({ schema: type(Array) }).schema
         , prop1
         , prop2
         ;
 
-      for (var prop in baseTypeProperties) {
+      for (let prop in baseTypeProperties) {
         if (prop === 'options') return;
         prop1 = type1[prop];
         prop2 = type2[prop];
@@ -105,7 +105,7 @@ describe('Array (plain)', () => {
 
     context('#copyWithin', () => {
       it('should return the same array instance', () => {
-        var before = store.instance
+        let before = store.instance
           , result = store.instance.copyWithin(4, 5)
           ;
         before.should.equal(result);
@@ -134,7 +134,7 @@ describe('Array (plain)', () => {
 
     context('#every', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.every(()=> {
           //
         });
@@ -143,7 +143,7 @@ describe('Array (plain)', () => {
       });
 
       it('should break when the condition fails', () => {
-        var count = 0;
+        let count = 0;
         store.state = [true, true, false, false];
         store.instance.every((item) => {
           count++;
@@ -153,7 +153,7 @@ describe('Array (plain)', () => {
       });
 
       it('should return true when the condition is truthy for all items', () => {
-        var count = 0;
+        let count = 0;
         store.state = [true, 1, 'yes', {}, []];
         store.instance.every((item) => {
           count++;
@@ -163,7 +163,7 @@ describe('Array (plain)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1];
         store.instance.every((first, second, third, ...rest) => {
           count++;
@@ -176,7 +176,7 @@ describe('Array (plain)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [1];
@@ -188,7 +188,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1, 2, 3, 4, 5];
         store.instance.every(function() {
           if (count < 2) {
@@ -205,7 +205,7 @@ describe('Array (plain)', () => {
 
     context('#fill', () => {
       it('should return the same array instance', () => {
-        var before = store.instance
+        let before = store.instance
           , result = store.instance.fill(4, 5, 6)
           ;
         before.should.equal(result);
@@ -244,7 +244,7 @@ describe('Array (plain)', () => {
 
     context('#filter', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.filter(()=> {
           //
         });
@@ -253,7 +253,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not include items for which the condition fails', () => {
-        var count = 0;
+        let count = 0;
         store.state = [0, 2, 1, 3, 4, 5, 7, 9];
         store.instance.filter((item) => {
           count++;
@@ -263,7 +263,7 @@ describe('Array (plain)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1];
         store.instance.filter((first, second, third, ...rest) => {
           count++;
@@ -276,7 +276,7 @@ describe('Array (plain)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [1];
@@ -288,7 +288,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1, 2, 3, 4, 5];
         store.instance.filter(function() {
           if (count < 2) {
@@ -305,7 +305,7 @@ describe('Array (plain)', () => {
 
     context('#find', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.find(()=> {
           //
         });
@@ -314,7 +314,7 @@ describe('Array (plain)', () => {
       });
 
       it('should find the item for which the condition holds', () => {
-        var count = 0;
+        let count = 0;
 
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }];
         store.instance.find((item) => {
@@ -325,7 +325,7 @@ describe('Array (plain)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1];
         store.instance.find((first, second, third, ...rest) => {
           count++;
@@ -338,7 +338,7 @@ describe('Array (plain)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [1];
@@ -350,7 +350,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1, 2, 3, 4, 5];
         expect(store.instance.find(function(item) {
           if (count < 2) {
@@ -367,7 +367,7 @@ describe('Array (plain)', () => {
 
     context('#findIndex', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.findIndex(()=> {
           //
         });
@@ -376,7 +376,7 @@ describe('Array (plain)', () => {
       });
 
       it('should find the item for which the condition holds', () => {
-        var count = 0;
+        let count = 0;
 
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }];
         store.instance.findIndex((item) => {
@@ -387,7 +387,7 @@ describe('Array (plain)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1];
         store.instance.findIndex((first, second, third, ...rest) => {
           count++;
@@ -400,7 +400,7 @@ describe('Array (plain)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [1];
@@ -412,7 +412,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1, 2, 3, 4, 5];
         expect(store.instance.findIndex(function(item) {
           if (count < 2) {
@@ -429,7 +429,7 @@ describe('Array (plain)', () => {
 
     context('#forEach', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         expect(store.instance.forEach(()=> {
           //
         })).to.be.undefined;
@@ -438,7 +438,7 @@ describe('Array (plain)', () => {
       });
 
       it('should call for each item', () => {
-        var count = 0
+        let count = 0
           , input = [true, 1, 'yes', false, 0, '']
           ;
         store.state = input;
@@ -450,7 +450,7 @@ describe('Array (plain)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1];
         store.instance.forEach((first, second, third, ...rest) => {
           count++;
@@ -463,7 +463,7 @@ describe('Array (plain)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [1];
@@ -475,7 +475,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1, 2, 3, 4, 5];
         store.instance.forEach(function() {
           if (count < 2) {
@@ -491,7 +491,7 @@ describe('Array (plain)', () => {
 
     context('#includes', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.includes(12).should.be.false;
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -534,7 +534,7 @@ describe('Array (plain)', () => {
 
       it('should find a complex type', () => {
         store.state = [{}, {}, {}, {}, {}];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.includes(toFind).should.be.true;
       });
 
@@ -551,7 +551,7 @@ describe('Array (plain)', () => {
 
     context('#indexOf', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.indexOf(12).should.equal(-1);
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -594,7 +594,7 @@ describe('Array (plain)', () => {
 
       it('should find a complex type', () => {
         store.state = [{}, {}, {}, {}, {}];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.indexOf(toFind).should.equal(3);
       });
 
@@ -611,7 +611,7 @@ describe('Array (plain)', () => {
 
     context('#join', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.join().should.equal('');
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -640,7 +640,7 @@ describe('Array (plain)', () => {
 
     context('#lastIndexOf', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.lastIndexOf(12).should.equal(-1);
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -683,7 +683,7 @@ describe('Array (plain)', () => {
 
       it('should find a complex type', () => {
         store.state = [{}, {}, {}, {}, {}];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.lastIndexOf(toFind).should.equal(3);
       });
 
@@ -700,7 +700,7 @@ describe('Array (plain)', () => {
 
     context('#map', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         expect(store.instance.map(()=> {
           //
         })).to.deep.equal([]);
@@ -709,7 +709,7 @@ describe('Array (plain)', () => {
       });
 
       it('should map each item', () => {
-        var input  = [true, 1, 'yes', false, 0, '']
+        let input  = [true, 1, 'yes', false, 0, '']
           , mapper = (item, ix) => {
               item.should.equal(input[ix]);
               return { v: item };
@@ -721,7 +721,7 @@ describe('Array (plain)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1];
         store.instance.map((first, second, third, ...rest) => {
           count++;
@@ -734,7 +734,7 @@ describe('Array (plain)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [1];
@@ -746,7 +746,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1, 2, 3, 4, 5];
         store.instance.map(function() {
           if (count < 2) {
@@ -763,7 +763,7 @@ describe('Array (plain)', () => {
     context('#pop', () => {
       it('should mutate the array', () => {
         store.state = [1, 2, 3];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.pop().should.equal(3);
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -787,7 +787,7 @@ describe('Array (plain)', () => {
 
     context('#push', () => {
       it('should mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.push(1).should.equal(1);
         actions.should.have.length(1);
         store.state.should.not.equal(pre);
@@ -813,7 +813,7 @@ describe('Array (plain)', () => {
 
     context('#reduce', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         expect(store.instance.reduce(()=> {
           //
         }, 0)).to.equal(0);
@@ -832,7 +832,7 @@ describe('Array (plain)', () => {
       });
 
       it('should invoke the callback with 4 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1];
         store.instance.reduce((first, second, third, fourth, ...rest) => {
           count++;
@@ -846,7 +846,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [0, 0, 0, 0, 0];
         store.instance.reduce(function(prev, cur) {
           if (count < 2) {
@@ -863,7 +863,7 @@ describe('Array (plain)', () => {
 
     context('#reduceRight', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         expect(store.instance.reduceRight(()=> {
           //
         }, 0)).to.equal(0);
@@ -882,7 +882,7 @@ describe('Array (plain)', () => {
       });
 
       it('should invoke the callback with 4 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1];
         store.instance.reduceRight((first, second, third, fourth, ...rest) => {
           count++;
@@ -896,7 +896,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [0, 0, 0, 0, 0];
         store.instance.reduceRight(function(prev, cur) {
           if (count < 2) {
@@ -913,7 +913,7 @@ describe('Array (plain)', () => {
 
     context('#reverse', () => {
       it('should not mutate the array if it has no items, but should dispatch', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.reverse();
         actions.should.have.length(1);
         store.state.should.equal(pre);
@@ -921,7 +921,7 @@ describe('Array (plain)', () => {
 
       it('should mutate the array if it has items', () => {
         store.state = [1, 2, 3];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.reverse();
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -937,7 +937,7 @@ describe('Array (plain)', () => {
     context('#shift', () => {
       it('should mutate the array', () => {
         store.state = [1, 2, 3];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.shift().should.equal(1);
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -962,7 +962,7 @@ describe('Array (plain)', () => {
     context('#slice', () => {
       it('should not mutate the array', () => {
         store.state = [1, 2, 3];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.slice();
         actions.should.have.length(1);
         store.state.should.equal(pre);
@@ -996,7 +996,7 @@ describe('Array (plain)', () => {
 
     context('#some', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.some(()=> {
           //
         });
@@ -1005,7 +1005,7 @@ describe('Array (plain)', () => {
       });
 
       it('should break when the condition passes', () => {
-        var count = 0;
+        let count = 0;
         store.state = [false, true, false, false];
         store.instance.some((item) => {
           count++;
@@ -1015,7 +1015,7 @@ describe('Array (plain)', () => {
       });
 
       it('should return false when the condition is falsy for all items', () => {
-        var count = 0;
+        let count = 0;
         store.state = [false, 0, '', null, undefined];
         store.instance.some((item) => {
           count++;
@@ -1025,7 +1025,7 @@ describe('Array (plain)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1];
         store.instance.some((first, second, third, ...rest) => {
           count++;
@@ -1038,7 +1038,7 @@ describe('Array (plain)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [1];
@@ -1050,7 +1050,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [1, 2, 3, 4, 5];
         store.instance.some(function() {
           if (count < 2) {
@@ -1068,7 +1068,7 @@ describe('Array (plain)', () => {
     context('#sort', () => {
       it('should mutate the array', () => {
         store.state = [7, 2, 4];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.sort();
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -1102,7 +1102,7 @@ describe('Array (plain)', () => {
     context('#splice', () => {
       it('should mutate the array', () => {
         store.state = [7, 2, 4];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.splice(1, 1, 8);
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -1145,7 +1145,7 @@ describe('Array (plain)', () => {
       });
 
       it('should not save items directly to the state', () => {
-        var obj = { v: 1 };
+        let obj = { v: 1 };
         store.state = [7, 2, 4, 1, 5, 3];
         store.instance.splice(3, 0, obj);
         store.state.should.deep.equal([7, 2, 4, obj, 1, 5, 3]);
@@ -1156,14 +1156,14 @@ describe('Array (plain)', () => {
 
     context('#toLocaleString', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.toLocaleString();
         actions.should.have.length(0);
         store.state.should.equal(pre);
       });
 
       it('should return the locale string version of the array', () => {
-        var input = [1337.1337, {}, [], 'Hello world', true];
+        let input = [1337.1337, {}, [], 'Hello world', true];
         store.state = input;
         store.instance.toLocaleString().should.equal(input.toLocaleString());
       });
@@ -1171,14 +1171,14 @@ describe('Array (plain)', () => {
 
     context('#toString', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.toString();
         actions.should.have.length(0);
         store.state.should.equal(pre);
       });
 
       it('should return the stringified version of the array', () => {
-        var input = [1337.1337, {}, [], 'Hello world', true];
+        let input = [1337.1337, {}, [], 'Hello world', true];
         store.state = input;
         store.instance.toString().should.equal(input.toString());
       });
@@ -1186,7 +1186,7 @@ describe('Array (plain)', () => {
 
     context('#unshift', () => {
       it('should mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.unshift(1).should.equal(1);
         actions.should.have.length(1);
         store.state.should.not.equal(pre);
@@ -1212,14 +1212,14 @@ describe('Array (plain)', () => {
 
     context('#valueOf', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.valueOf();
         actions.should.have.length(0);
         store.state.should.equal(pre);
       });
 
       it('should return the stringified version of the array', () => {
-        var input = [1337.1337, {}, [], 'Hello world', true];
+        let input = [1337.1337, {}, [], 'Hello world', true];
         store.state = input;
         store.instance.valueOf().should.deep.equal(input.valueOf());
       });
@@ -1242,7 +1242,7 @@ describe('Array (plain)', () => {
 
       it('should mutate the array when set', () => {
         store.state = [1, 2, 3];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.length = 3;
         store.state.should.not.equal(pre);
         actions.should.have.length(2);
@@ -1275,7 +1275,7 @@ describe('Array (plain)', () => {
 
     context('#get', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.get(0);
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -1297,7 +1297,7 @@ describe('Array (plain)', () => {
 
     context('#set', () => {
       it('should mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.set(0, 3);
         actions.should.have.length(1);
         store.state.should.not.equal(pre);

@@ -6,7 +6,7 @@ import { baseTypeProperties, checkProperties } from './utils';
 should();
 
 describe('Number', () => {
-  var schema
+  let schema
     , store
     , actions
     ;
@@ -16,7 +16,7 @@ describe('Number', () => {
     store.store = createStore(store.reducer);
     schema = store.schema;
     actions = [];
-    var origDispatch = store.dispatch;
+    let origDispatch = store.dispatch;
     store.dispatch = function(action) {
       actions.push(action);
       return origDispatch(action);

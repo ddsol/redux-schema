@@ -16,10 +16,10 @@ export const baseTypeProperties = {
 };
 
 export function checkProperties(objGetter, properties) {
-  var locus = new Error();
+  let locus = new Error();
   Object.keys(properties).forEach(name => it('should have the correct property ' + name, () => {
     try {
-      var obj              = objGetter()
+      let obj              = objGetter()
         , propValue        = obj[name]
         , propExpectedType = properties[name]
         ;
@@ -31,7 +31,7 @@ export function checkProperties(objGetter, properties) {
         expect(propValue).to.deep.equal(propExpectedType);
       }
     } catch (err) {
-      err.stack = locus.stack;
+      err.stack = locus.stack.replace(/^[^\n]*\n/, '');
       throw err;
     }
   }));

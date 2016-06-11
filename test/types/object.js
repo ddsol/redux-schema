@@ -6,7 +6,7 @@ import { baseTypeProperties, checkProperties } from './utils';
 should();
 
 describe('Object (plain)', () => {
-  var schema
+  let schema
     , store
     , actions
     ;
@@ -16,7 +16,7 @@ describe('Object (plain)', () => {
     store.store = createStore(store.reducer);
     schema = store.schema;
     actions = [];
-    var origDispatch = store.dispatch;
+    let origDispatch = store.dispatch;
     store.dispatch = function(action) {
       actions.push(action);
       return origDispatch(action);
@@ -31,13 +31,13 @@ describe('Object (plain)', () => {
     }));
 
     it('should treat {} and Object as equivalent', () => {
-      var type1 = new Store({ schema: type({}) }).schema
+      let type1 = new Store({ schema: type({}) }).schema
         , type2 = new Store({ schema: type(Object) }).schema
         , prop1
         , prop2
         ;
 
-      for (var prop in baseTypeProperties) {
+      for (let prop in baseTypeProperties) {
         if (prop === 'options') return;
         prop1 = type1[prop];
         prop2 = type2[prop];
@@ -88,7 +88,7 @@ describe('Object (plain)', () => {
   context('properties', () => {
     context('#get', () => {
       it('should not mutate the object', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.get(0);
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -110,7 +110,7 @@ describe('Object (plain)', () => {
 
     context('#set', () => {
       it('should mutate the object', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.set(0, 3);
         actions.should.have.length(1);
         store.state.should.not.equal(pre);

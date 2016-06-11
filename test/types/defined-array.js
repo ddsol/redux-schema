@@ -6,7 +6,7 @@ import { baseTypeProperties, checkProperties } from './utils';
 should();
 
 describe('Array (defined)', () => {
-  var schema
+  let schema
     , store
     , actions
     ;
@@ -16,7 +16,7 @@ describe('Array (defined)', () => {
     store.store = createStore(store.reducer);
     schema = store.schema;
     actions = [];
-    var origDispatch = store.dispatch;
+    let origDispatch = store.dispatch;
     store.dispatch = function(action) {
       actions.push(action);
       return origDispatch(action);
@@ -94,7 +94,7 @@ describe('Array (defined)', () => {
 
     context('#copyWithin', () => {
       it('should return the same array instance', () => {
-        var before = store.instance
+        let before = store.instance
           , result = store.instance.copyWithin(4, 5)
           ;
         before.should.equal(result);
@@ -123,7 +123,7 @@ describe('Array (defined)', () => {
 
     context('#every', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.every(()=> {
           //
         });
@@ -132,7 +132,7 @@ describe('Array (defined)', () => {
       });
 
       it('should break when the condition fails', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
         store.instance.every((item) => {
           count++;
@@ -142,7 +142,7 @@ describe('Array (defined)', () => {
       });
 
       it('should return true when the condition is truthy for all items', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }];
         store.instance.every((item) => {
           count++;
@@ -152,7 +152,7 @@ describe('Array (defined)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }];
         store.instance.every((first, second, third, ...rest) => {
           count++;
@@ -165,7 +165,7 @@ describe('Array (defined)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [{ v: 1 }];
@@ -177,7 +177,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }];
         store.instance.every(function() {
           if (count < 2) {
@@ -202,7 +202,7 @@ describe('Array (defined)', () => {
 
     context('#fill', () => {
       it('should return the same array instance', () => {
-        var before = store.instance
+        let before = store.instance
           , result = store.instance.fill(4, 5, 6)
           ;
         before.should.equal(result);
@@ -241,7 +241,7 @@ describe('Array (defined)', () => {
 
     context('#filter', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.filter(()=> {
           //
         });
@@ -250,7 +250,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not include items for which the condition fails', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 0 }, { v: 2 }, { v: 1 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 7 }, { v: 9 }];
         store.instance.filter((item) => {
           count++;
@@ -260,7 +260,7 @@ describe('Array (defined)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }];
         store.instance.filter((first, second, third, ...rest) => {
           count++;
@@ -273,7 +273,7 @@ describe('Array (defined)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [{ v: 1 }];
@@ -285,7 +285,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }];
         store.instance.filter(function() {
           if (count < 2) {
@@ -302,7 +302,7 @@ describe('Array (defined)', () => {
 
     context('#find', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.find(()=> {
           //
         });
@@ -311,7 +311,7 @@ describe('Array (defined)', () => {
       });
 
       it('should find the item for which the condition holds', () => {
-        var count = 0;
+        let count = 0;
 
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }];
         store.instance.find((item) => {
@@ -322,7 +322,7 @@ describe('Array (defined)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }];
         store.instance.find((first, second, third, ...rest) => {
           count++;
@@ -335,7 +335,7 @@ describe('Array (defined)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [{ v: 1 }];
@@ -347,7 +347,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }];
         expect(store.instance.find(function(item) {
           if (count < 2) {
@@ -364,7 +364,7 @@ describe('Array (defined)', () => {
 
     context('#findIndex', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.findIndex(()=> {
           //
         });
@@ -373,7 +373,7 @@ describe('Array (defined)', () => {
       });
 
       it('should find the item for which the condition holds', () => {
-        var count = 0;
+        let count = 0;
 
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }];
         store.instance.findIndex((item) => {
@@ -384,7 +384,7 @@ describe('Array (defined)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }];
         store.instance.findIndex((first, second, third, ...rest) => {
           count++;
@@ -397,7 +397,7 @@ describe('Array (defined)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [{ v: 1 }];
@@ -409,7 +409,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }];
         expect(store.instance.findIndex(function(item) {
           if (count < 2) {
@@ -426,7 +426,7 @@ describe('Array (defined)', () => {
 
     context('#forEach', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         expect(store.instance.forEach(()=> {
           //
         })).to.be.undefined;
@@ -435,7 +435,7 @@ describe('Array (defined)', () => {
       });
 
       it('should call for each item', () => {
-        var count = 0
+        let count = 0
           , input = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }]
           ;
         store.state = input;
@@ -447,7 +447,7 @@ describe('Array (defined)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }];
         store.instance.forEach((first, second, third, ...rest) => {
           count++;
@@ -460,7 +460,7 @@ describe('Array (defined)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [{ v: 1 }];
@@ -472,7 +472,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }];
         store.instance.forEach(function() {
           if (count < 2) {
@@ -488,7 +488,7 @@ describe('Array (defined)', () => {
 
     context('#includes', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.includes(12).should.be.false;
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -501,26 +501,26 @@ describe('Array (defined)', () => {
 
       it('should find an item', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.includes(toFind).should.be.true;
       });
 
       it('should begin searching from start when start is positive', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.includes(toFind, 4).should.be.false1;
       });
 
       it('should  begin searching relative to end when start is negative', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.includes(toFind, -2).should.be.false;
       });
     });
 
     context('#indexOf', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.indexOf(12).should.equal(-1);
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -533,26 +533,26 @@ describe('Array (defined)', () => {
 
       it('should find a complex type', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.indexOf(toFind).should.equal(3);
       });
 
       it('should begin searching from start when start is positive', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.indexOf(toFind, 4).should.equal(-1);
       });
 
       it('should  begin searching relative to end when start is negative', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.indexOf(toFind, -2).should.equal(-1);
       });
     });
 
     context('#join', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.join().should.equal('');
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -576,7 +576,7 @@ describe('Array (defined)', () => {
 
     context('#lastIndexOf', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.lastIndexOf(12).should.equal(-1);
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -589,26 +589,26 @@ describe('Array (defined)', () => {
 
       it('should find a complex type', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.lastIndexOf(toFind).should.equal(3);
       });
 
       it('should begin searching from start when start is positive', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.lastIndexOf(toFind, 2).should.equal(-1);
       });
 
       it('should  begin searching relative to end when start is negative', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
-        var toFind = store.instance.get(3);
+        let toFind = store.instance.get(3);
         store.instance.lastIndexOf(toFind, -5).should.equal(-1);
       });
     });
 
     context('#map', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         expect(store.instance.map(()=> {
           //
         })).to.deep.equal([]);
@@ -617,7 +617,7 @@ describe('Array (defined)', () => {
       });
 
       it('should map each item', () => {
-        var input  = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }]
+        let input  = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }]
           , mapper = (item, ix) => {
               if (typeof item.toObject === 'function') {
                 item = item.toObject();
@@ -631,7 +631,7 @@ describe('Array (defined)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }];
         store.instance.map((first, second, third, ...rest) => {
           count++;
@@ -644,7 +644,7 @@ describe('Array (defined)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [{ v: 1 }];
@@ -656,7 +656,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }];
         store.instance.map(function() {
           if (count < 2) {
@@ -673,7 +673,7 @@ describe('Array (defined)', () => {
     context('#pop', () => {
       it('should mutate the array', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.pop().should.deep.equal({ v: 3 });
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -697,7 +697,7 @@ describe('Array (defined)', () => {
 
     context('#push', () => {
       it('should mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.push({ v: 1 }).should.equal(1);
         actions.should.have.length(1);
         store.state.should.not.equal(pre);
@@ -722,7 +722,7 @@ describe('Array (defined)', () => {
 
     context('#reduce', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         expect(store.instance.reduce(()=> {
           //
         }, 0)).to.equal(0);
@@ -741,7 +741,7 @@ describe('Array (defined)', () => {
       });
 
       it('should invoke the callback with 4 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }];
         store.instance.reduce((first, second, third, fourth, ...rest) => {
           count++;
@@ -755,7 +755,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }];
         store.instance.reduce(function(prev, cur) {
           if (count < 2) {
@@ -772,7 +772,7 @@ describe('Array (defined)', () => {
 
     context('#reduceRight', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         expect(store.instance.reduceRight(()=> {
           //
         }, 0)).to.equal(0);
@@ -791,7 +791,7 @@ describe('Array (defined)', () => {
       });
 
       it('should invoke the callback with 4 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }];
         store.instance.reduceRight((first, second, third, fourth, ...rest) => {
           count++;
@@ -805,7 +805,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }];
         store.instance.reduceRight(function(prev, cur) {
           if (count < 2) {
@@ -822,7 +822,7 @@ describe('Array (defined)', () => {
 
     context('#reverse', () => {
       it('should not mutate the array if it has no items, but should dispatch', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.reverse();
         actions.should.have.length(1);
         store.state.should.equal(pre);
@@ -830,7 +830,7 @@ describe('Array (defined)', () => {
 
       it('should mutate the array if it has items', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.reverse();
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -846,7 +846,7 @@ describe('Array (defined)', () => {
     context('#shift', () => {
       it('should mutate the array', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.shift().should.deep.equal({ v: 1 });
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -871,7 +871,7 @@ describe('Array (defined)', () => {
     context('#slice', () => {
       it('should not mutate the array', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.slice();
         actions.should.have.length(1);
         store.state.should.equal(pre);
@@ -905,7 +905,7 @@ describe('Array (defined)', () => {
 
     context('#some', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.some(()=> {
           //
         });
@@ -914,7 +914,7 @@ describe('Array (defined)', () => {
       });
 
       it('should break when the condition fails', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
         store.instance.some((item) => {
           count++;
@@ -924,7 +924,7 @@ describe('Array (defined)', () => {
       });
 
       it('should return false when the condition is falsy for all items', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }];
         store.instance.some(() => {
           count++;
@@ -934,7 +934,7 @@ describe('Array (defined)', () => {
       });
 
       it('should invoke the callback with 3 arguments', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }];
         store.instance.some((first, second, third, ...rest) => {
           count++;
@@ -947,7 +947,7 @@ describe('Array (defined)', () => {
       });
 
       it('should pass along the thisArg parameter', () => {
-        var count   = 0
+        let count   = 0
           , thisArg = {}
           ;
         store.state = [{ v: 1 }];
@@ -959,7 +959,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not enumerate items in the array added during processing', () => {
-        var count = 0;
+        let count = 0;
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }];
         store.instance.some(function() {
           if (count < 2) {
@@ -985,7 +985,7 @@ describe('Array (defined)', () => {
     context('#sort', () => {
       it('should mutate the array', () => {
         store.state = [{ v: 7 }, { v: 2 }, { v: 4 }];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.sort();
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -1003,7 +1003,7 @@ describe('Array (defined)', () => {
     context('#splice', () => {
       it('should mutate the array', () => {
         store.state = [{ v: 7 }, { v: 2 }, { v: 4 }];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.splice(1, 1, { v: 8 });
         actions.should.have.length(2);
         store.state.should.not.equal(pre);
@@ -1065,7 +1065,7 @@ describe('Array (defined)', () => {
       });
 
       it('should not save items directly to the state', () => {
-        var obj = { v: 1 };
+        let obj = { v: 1 };
         store.state = [{ v: 7 }, { v: 2 }, { v: 4 }, { v: 1 }, { v: 5 }, { v: 3 }];
         store.instance.splice(3, 0, obj);
         store.state.should.deep.equal([{ v: 7 }, { v: 2 }, { v: 4 }, obj, { v: 1 }, { v: 5 }, { v: 3 }]);
@@ -1076,14 +1076,14 @@ describe('Array (defined)', () => {
 
     context('#toLocaleString', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.toLocaleString();
         actions.should.have.length(0);
         store.state.should.equal(pre);
       });
 
       it('should return the locale string version of the array', () => {
-        var input = [{ v: 1 }, { v: 1 }];
+        let input = [{ v: 1 }, { v: 1 }];
         store.state = input;
         store.instance.toLocaleString().should.equal(input.toLocaleString());
       });
@@ -1091,14 +1091,14 @@ describe('Array (defined)', () => {
 
     context('#toString', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.toString();
         actions.should.have.length(0);
         store.state.should.equal(pre);
       });
 
       it('should return the stringified version of the array', () => {
-        var input = [{ v: 1 }, { v: 2 }];
+        let input = [{ v: 1 }, { v: 2 }];
         store.state = input;
         store.instance.toString().should.equal(input.toString());
       });
@@ -1106,7 +1106,7 @@ describe('Array (defined)', () => {
 
     context('#unshift', () => {
       it('should mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.unshift({ v: 1 }).should.equal(1);
         actions.should.have.length(1);
         store.state.should.not.equal(pre);
@@ -1131,14 +1131,14 @@ describe('Array (defined)', () => {
 
     context('#valueOf', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.valueOf();
         actions.should.have.length(0);
         store.state.should.equal(pre);
       });
 
       it('should return the stringified version of the array', () => {
-        var input = [{ v: 1 }, { v: 2 }];
+        let input = [{ v: 1 }, { v: 2 }];
         store.state = input;
         store.instance.valueOf().should.deep.equal(input.valueOf());
       });
@@ -1162,7 +1162,7 @@ describe('Array (defined)', () => {
 
       it('should mutate the array when set', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }];
-        var pre = store.state;
+        let pre = store.state;
         store.instance.length = 3;
         store.state.should.not.equal(pre);
         actions.should.have.length(2);
@@ -1207,7 +1207,7 @@ describe('Array (defined)', () => {
 
     context('#get', () => {
       it('should not mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.get(0);
         actions.should.have.length(0);
         store.state.should.equal(pre);
@@ -1229,7 +1229,7 @@ describe('Array (defined)', () => {
 
     context('#set', () => {
       it('should mutate the array', () => {
-        var pre = store.state;
+        let pre = store.state;
         store.instance.set(0, { v: 3 });
         actions.should.have.length(1);
         store.state.should.not.equal(pre);

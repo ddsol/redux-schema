@@ -136,7 +136,6 @@ export function dedent(strings, ...args) {
   len = match[1].length;
 
   replace = new RegExp(`\\n {${len}}`,'g');
-  console.log(replace, len);
 
   return string.replace(replace, '\n').substr(1);
 }

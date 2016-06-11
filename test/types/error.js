@@ -6,7 +6,7 @@ import { baseTypeProperties, checkProperties } from './utils';
 should();
 
 describe('Error', () => {
-  var schema
+  let schema
     , store
     , actions
     ;
@@ -16,7 +16,7 @@ describe('Error', () => {
     store.store = createStore(store.reducer);
     schema = store.schema;
     actions = [];
-    var origDispatch = store.dispatch;
+    let origDispatch = store.dispatch;
     store.dispatch = function(action) {
       actions.push(action);
       return origDispatch(action);
@@ -33,7 +33,7 @@ describe('Error', () => {
 
   context('instance', () => {
     it('should be an empty error by default ', () => {
-      var v = store.instance;
+      let v = store.instance;
       v.should.be.instanceOf(Error);
       String(v).should.match(/\bError\b/i);
     });
@@ -47,7 +47,7 @@ describe('Error', () => {
     });
 
     it('should allow assignment and retrieval of an Error object', () => {
-      var errorIn = new Error('message here')
+      let errorIn = new Error('message here')
         , errorOut
         ;
 

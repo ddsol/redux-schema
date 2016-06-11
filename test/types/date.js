@@ -6,7 +6,7 @@ import { baseTypeProperties, checkProperties } from './utils';
 should();
 
 describe('Date', () => {
-  var schema
+  let schema
     , store
     , actions
     ;
@@ -16,7 +16,7 @@ describe('Date', () => {
     store.store = createStore(store.reducer);
     schema = store.schema;
     actions = [];
-    var origDispatch = store.dispatch;
+    let origDispatch = store.dispatch;
     store.dispatch = function(action) {
       actions.push(action);
       return origDispatch(action);
@@ -33,7 +33,7 @@ describe('Date', () => {
 
   context('instance', () => {
     it('should be invalid by default ', () => {
-      var v = store.instance;
+      let v = store.instance;
       v.should.be.instanceOf(Date);
       String(v).should.match(/\binvalid\b/i);
     });
@@ -49,7 +49,7 @@ describe('Date', () => {
     });
 
     it('should allow assignment and retrieval of a date object', () => {
-      var dateIn = new Date()
+      let dateIn = new Date()
         , dateOut
         ;
 
