@@ -1070,8 +1070,8 @@ export function collection(model) {
             bound.prototype = modelType.prototype;
             return bound;
           },
-          delete(id) {
-            if (!this[id]) throw new Error(`Could not delete ${modelType.name}[${id}]: object not found`);
+          remove(id) {
+            if (!this[id]) throw new Error(`Could not remove ${modelType.name}[${id}]: object not found`);
             this[id] = undefined;
           }
         }
