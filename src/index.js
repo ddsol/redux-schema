@@ -1,36 +1,23 @@
-import _Store from './store';
-export const Store = _Store;
+export { default as Store } from './store';
 
 //Export types
-import _union from './types/union';
-import _Any from './types/any';
-import _Nil from './types/nil';
-import _reference from './types/reference';
-import _ObjectId from './types/object-id';
-import _collection from './types/collection';
-import _collections from './types/collections';
-import _model from './types/model';
-export const union = _union;
-export const Any = _Any;
-export const Nil = _Nil;
-export const reference = _reference;
-export const ObjectId = _ObjectId;
-export const collection = _collection;
-export const collections = _collections;
-export const model = _model;
+export { default as union } from './types/union';
+export { default as Any } from './types/any';
+export { default as Nil } from './types/nil';
+export { default as reference } from './types/reference';
+export { default as ObjectId } from './types/object-id';
+export { default as collection } from './types/collection';
+export { default as collections } from './types/collections';
+export { default as model } from './types/model';
 
 //Export modifiers
-import _optional from './modifiers/optional';
-import _validate from './modifiers/validate';
-import _bare from './modifiers/bare';
-import _reducer from './modifiers/reducer';
-import _autoResolve from './modifiers/auto-resolve';
-export const optional = _optional;
-export const validate = _validate;
-export const bare = _bare;
-export const reducer = _reducer;
-export const autoResolve = _autoResolve;
+export { default as optional } from './modifiers/optional';
+export { default as validate } from './modifiers/validate';
+export { default as bare } from './modifiers/bare';
+export { default as reducer } from './modifiers/reducer';
+export { default as autoResolve } from './modifiers/auto-resolve';
+
+export { default as dog } from './modifiers/optional';
 
 //Export generic type parser
-import _type from './parse/type';
-export const type = _type;
+export { default as type } from './parse/type';
