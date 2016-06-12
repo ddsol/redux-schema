@@ -1,4 +1,4 @@
-import { type, Store } from '../../src'; //, model, optional, Nil, bare, reference, collections
+import { type, Store } from '../../src';
 import { createStore } from 'redux';
 import { expect, should } from 'chai';
 import { baseTypeProperties, checkProperties } from './utils';

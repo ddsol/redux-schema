@@ -1,4 +1,4 @@
-import { type, Store } from '../../src'; //, model, optional, Nil, bare, reference, collections
+import { type, Store } from '../../src';
 import { createStore } from 'redux';
 import { expect, should } from 'chai';
 import { baseTypeProperties, checkProperties } from './utils';
@@ -508,7 +508,7 @@ describe('Array (defined)', () => {
       it('should begin searching from start when start is positive', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }];
         let toFind = store.instance.get(3);
-        store.instance.includes(toFind, 4).should.be.false1;
+        store.instance.includes(toFind, 4).should.be.false;
       });
 
       it('should  begin searching relative to end when start is negative', () => {
@@ -618,7 +618,7 @@ describe('Array (defined)', () => {
 
       it('should map each item', () => {
         let input  = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }]
-          , mapper = (item, ix) => {
+          , mapper = (item) => {
               if (typeof item.toObject === 'function') {
                 item = item.toObject();
               }

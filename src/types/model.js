@@ -32,12 +32,16 @@ export default function model(name, model) {
         owner = null;
       }
       if (!store || !store.isStore) {
-        throw new Error('Store needed');
+        throw new Error(`Cannot create new ${name}. No store assigned`);
+      }
+      if (!owner) {
+        throw new Error(`Cannot create new ${name}. New instances only allowed for models in a collection.`);
       }
 
-      storePath = (owner ? owner._meta.storePath : [collection]).concat(id);
-      instancePath = (owner ? owner._meta.instancePath : [collection]).concat(id);
+      storePath = owner._meta.storePath.concat(id);
+      instancePath = owner._meta.instancePath.concat(id);
       store.unpack(resultType, storePath, instancePath, this, owner);
+      store.put(instancePath, this);
       this.constructor.apply(this, args);
     }, model.constructor, !options.namedFunctions);
 
@@ -58,7 +62,7 @@ export default function model(name, model) {
 
     if (!idKey) {
       if (resultType.properties.id) {
-        throw new TypeError(`The "id" property of "{$name}" must be an ObjectId`);
+        throw new TypeError(`The "id" property of "${name}" must be an ObjectId`);
       }
       model.id = ObjectId;
       idKey = 'id';
@@ -84,11 +88,10 @@ export default function model(name, model) {
       }
     }, origConstructor, !options.namedFunctions);
 
-    delete resultType.name;
-
     Object.assign(ResultModel, resultType, {
       prototype: resultType.prototype,
       collection,
+      idKey,
       model,
       isModel: true
     });

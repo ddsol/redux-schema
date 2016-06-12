@@ -85,6 +85,8 @@ export default function parseObjectType(options, type, arrayType) {
     }
   });
 
+  propNames = Object.keys(properties);
+
   thisType = {
     isType: true,
     name: pathToStr(typeMoniker) || arrayType ? 'array' : 'object',
@@ -214,7 +216,7 @@ export default function parseObjectType(options, type, arrayType) {
           return;
         }
         type = restType;
-        if (!name in this._meta.state) return;
+        if (this.keys.indexOf(String(name)) === -1) return;
       }
       return meta.store.unpack(type, meta.storePath.concat(name), meta.instancePath.concat(name), null, this);
     },
@@ -222,6 +224,7 @@ export default function parseObjectType(options, type, arrayType) {
       let meta = this._meta
         , ix   = Number(name)
         , newState
+        , packed
         ;
 
       if (propNames.indexOf(name) !== -1) {
@@ -246,7 +249,13 @@ export default function parseObjectType(options, type, arrayType) {
         }
       }
 
-      meta.store.put(meta.storePath.concat(name), type.pack(value));
+      if (!arrayType && value === undefined && type === restType) {
+        packed = undefined;
+      } else {
+        packed = type.pack(value);
+      }
+
+      meta.store.put(meta.storePath.concat(name), packed);
     }, keys() {
       return Object.keys(this._meta.state);
     },

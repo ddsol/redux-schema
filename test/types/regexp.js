@@ -1,4 +1,4 @@
-import { type, Store } from '../../src'; //, model, optional, Nil, bare, reference, collections
+import { type, Store } from '../../src';
 import { createStore } from 'redux';
 import { expect, should } from 'chai';
 import { baseTypeProperties, checkProperties } from './utils';
@@ -47,9 +47,12 @@ describe('RegExp', () => {
     });
 
     it('should allow assignment and retrieval of a RegExp object', () => {
-      let regExpIn = /test[abc](12|34)(:?foo)/i
+      let str      = 'testa12 testb34foo'
+        , regExpIn = /test[abc](12|34)(:?foo)/ig
         , regExpOut
         ;
+
+      regExpIn.exec(str);
 
       regExpIn.custom = 'extra info';
       store.instance = regExpIn;
@@ -58,6 +61,7 @@ describe('RegExp', () => {
       regExpIn.global.should.equal(regExpOut.global);
       regExpIn.ignoreCase.should.equal(regExpOut.ignoreCase);
       regExpIn.multiline.should.equal(regExpOut.multiline);
+      regExpIn.lastIndex.should.equal(regExpOut.lastIndex);
     });
 
     it('should reject non-RegExp assignment', () => {

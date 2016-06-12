@@ -28,12 +28,20 @@ export default function collection(model) {
           },
           get model() {
             let bound = modelType.bind(null, this);
+            if (bound.name !== modelType.name) {
+              bound = namedFunction(modelType.name, bound, modelType, !options.debug);
+            }
             bound.prototype = modelType.prototype;
+            Object.assign(bound, modelType);
             return bound;
           },
           remove(id) {
-            if (!this[id]) throw new Error(`Could not remove ${modelType.name}[${id}]: object not found`);
-            this[id] = undefined;
+            if (id && id._meta && id._meta.idKey && id[id._meta.idKey]) {
+              id = id[id._meta.idKey];
+            }
+            var val = this.get(id);
+            if (!val) throw new Error(`Could not remove ${modelType.name}[${id}]: object not found`);
+            this.set(id, undefined);
           }
         }
       , thisType
