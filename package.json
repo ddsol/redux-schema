@@ -42,6 +42,7 @@
     "url": "https://github.com/ddsol/redux-schema/issues"
   },
   "dependencies": {
+    "deepmerge": "^0.2.10",
     "node-uuid": "^1.4.7",
     "serialize-error": "^1.1.0",
     "simpexp": "^0.1.0"

@@ -1,4 +1,5 @@
 import { snakeCase, pathToStr } from './utils';
+import deepMerge from 'deepmerge';
 
 const freeze = Object.freeze ? Object.freeze.bind(Object) : () => {};
 
@@ -40,6 +41,8 @@ export default class Store {
     this.maxCache = 1024;
     this.cache = {};
     this.cachePaths = [];
+    this.record = null;
+    this.recordStack = [];
   }
 
   setVirtual(obj, actionType, instancePath, setter, value) {
@@ -116,6 +119,8 @@ export default class Store {
   }
 
   put(path, value) {
+    this.checkRecord();
+
     let action = {
       type: `SET_${propActionFromPath(path) || 'ROOT'}`,
       path: path,
@@ -133,6 +138,7 @@ export default class Store {
   }
 
   get(path) {
+    this.recordRead(path);
     let toGo    = path.slice()
       , current = this.getActiveState()
       ;
@@ -206,6 +212,7 @@ export default class Store {
       ;
 
     if ('value' in action && action.type === `SET_${propActionFromPath(path) || 'ROOT'}`) {
+      this.checkRecord();
       this.internalState = updateProperty(this.internalState, path, action.value);
     } else {
       methodOrPropName = path.pop();
@@ -261,6 +268,99 @@ export default class Store {
       delete this.cache[this.cachePaths.shift()];
     }
     return result;
+  }
+
+  recordRead(path) {
+    if (!this.record) return;
+    let reg  = this.record
+      , last = reg
+      ;
+
+    for (let i = 0; i < path.length; i++) {
+      if (reg.check) return;
+
+      let prop = path[i];
+
+      if (!reg.children[prop]) {
+        reg.children[prop] = { children: {} };
+      }
+      last = reg;
+      reg = reg.children[prop];
+    }
+
+    last.check = true;
+  }
+
+  startRecord() {
+    if (this.record) {
+      this.recordStack.push(this.record);
+    }
+    this.record = { children: {} };
+    if (this.options.debug) {
+      var traceError = new Error('startRecord called without a matching stopRecord');
+      process.nextTick(()=>{
+        if (this.record) {
+          throw traceError;
+        }
+      });
+    }
+  }
+
+  stopRecord(remove) {
+    let result = this.record
+      , parent = this.recordStack.pop()
+      ;
+
+    if (!remove && parent) {
+      deepMerge(parent, result);
+    }
+
+    if (parent) {
+      this.record = parent;
+    } else {
+      this.record = null;
+    }
+
+    function readState(record, state) {
+      let result = {
+        state,
+        children: {},
+        check: record.check
+      };
+
+      Object.keys(record.children).forEach(prop => result.children[prop] = readState(record.children[prop], state[prop]));
+
+      return result;
+    }
+
+    return readState(result, this.state);
+  }
+
+  compareRecordedState(snapshot) {
+    function compareState(snapshot, state) {
+      if (state === snapshot.state) return false;
+      if (snapshot.check) return true;
+      return Object.keys(snapshot.children).each(prop => compareState(snapshot.children[prop], state[prop]));
+    }
+
+    return compareState(snapshot, this.state);
+  }
+
+  trace(func, remove) {
+    let result;
+    this.startRecord();
+    try {
+      func();
+    } finally {
+      result = this.stopRecord(remove);
+    }
+    return result;
+  }
+
+  checkRecord() {
+    if (this.record) {
+      throw new Error('Cannot write state while in read registration mode');
+    }
   }
 
   get instance() {
