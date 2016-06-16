@@ -88,7 +88,7 @@ let userModel = schema('User', {
 
 let root = collections([userModel]);
 
-let store = schemaStore(root, { debug: true })(redux.createStore);
+let store = schemaStore(root, { debug: true })(redux.createStore)();
 
 let { User } = store.models;
 
