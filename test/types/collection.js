@@ -1,4 +1,4 @@
-import { Store, model, collection } from '../../src';
+import schemaStore, { model, collection } from '../../src';
 import { createStore } from 'redux';
 import { expect, should } from 'chai';
 import { baseTypeProperties, checkProperties } from './utils';
@@ -14,8 +14,7 @@ describe('collection', () => {
 
   beforeEach(() => {
     let type = model('Model', { p:Number });
-    store = new Store({ schema: collection(type), debug: true });
-    store.store = createStore(store.reducer);
+    store = schemaStore(collection(type), { debug: true }, createStore);
     schema = store.schema;
     instance = store.instance;
   });

@@ -1,5 +1,3 @@
-export { default as Store } from './store';
-
 //Export types
 export { default as union } from './types/union';
 export { default as Any } from './types/any';
@@ -17,7 +15,25 @@ export { default as bare } from './modifiers/bare';
 export { default as reducer } from './modifiers/reducer';
 export { default as autoResolve } from './modifiers/auto-resolve';
 
-export { default as dog } from './modifiers/optional';
-
 //Export generic type parser
 export { default as type } from './parse/type';
+
+import Store from './store';
+
+export default function reduxSchemaStore(schema, options, createStore) {
+  let result = createStore => {
+    let store = new Store({ schema: schema,...options })
+      , redux = createStore(store.reducer)
+      ;
+
+    store.getState = redux.getState;
+    store.replaceReducer = redux.replaceReducer;
+    store.subscribe = redux.subscribe;
+
+    store.store = redux;
+
+    return store;
+  };
+
+  return createStore ? result(createStore): result;
+}

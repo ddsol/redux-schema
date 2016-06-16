@@ -14,7 +14,7 @@ export default class Store {
       throw new Error('Schema Store has no Redux Store assigned');
     }
 
-    let { schema, ... newOptions } = { ...{ typeMoniker: [] }, ...options, store: this };
+    let { schema, ... newOptions } = { typeMoniker: [], ...options, store: this };
 
     options = newOptions;
 
@@ -134,7 +134,7 @@ export default class Store {
 
   get(path) {
     let toGo    = path.slice()
-      , current = this.getState()
+      , current = this.getActiveState()
       ;
     while (current && toGo.length) {
       current = current[toGo.shift()];
@@ -157,7 +157,7 @@ export default class Store {
     return state;
   }
 
-  getState() {
+  getActiveState() {
     if (this.internalState !== undefined) {
       return this.internalState;
     }
@@ -275,7 +275,7 @@ export default class Store {
   }
 
   get state() {
-    return this.getState();
+    return this.getActiveState();
   }
 
   set state(value) {

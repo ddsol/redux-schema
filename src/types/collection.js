@@ -27,13 +27,13 @@ export default function collection(model) {
             return this.keys.map(id => this.get(id));
           },
           get model() {
-            let bound = modelType.bind(null, this);
-            if (bound.name !== modelType.name) {
-              bound = namedFunction(modelType.name, bound, modelType, !options.debug);
-            }
-            bound.prototype = modelType.prototype;
-            Object.assign(bound, modelType);
-            return bound;
+            let self = this
+              , BoundModel = namedFunction(modelType.name, function Model(...args) {
+                   return modelType.call(this, self,...args);
+                }, modelType, !options.debug);
+            BoundModel.prototype = modelType.prototype;
+            Object.assign(BoundModel, modelType);
+            return BoundModel;
           },
           remove(id) {
             if (id && id._meta && id._meta.idKey && id[id._meta.idKey]) {

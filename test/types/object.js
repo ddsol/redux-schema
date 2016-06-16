@@ -1,4 +1,4 @@
-import { type, Store } from '../../src';
+import schemaStore, { type } from '../../src';
 import { createStore } from 'redux';
 import { expect, should } from 'chai';
 import { baseTypeProperties, checkProperties } from './utils';
@@ -12,8 +12,7 @@ describe('Object (plain)', () => {
     ;
 
   beforeEach(() => {
-    store = new Store({ schema: type({}), debug: true });
-    store.store = createStore(store.reducer);
+    store = schemaStore(type({}), { debug: true }, createStore);
     schema = store.schema;
     actions = [];
     let origDispatch = store.dispatch;
@@ -31,8 +30,8 @@ describe('Object (plain)', () => {
     }));
 
     it('should treat {} and Object as equivalent', () => {
-      let type1 = new Store({ schema: type({}) }).schema
-        , type2 = new Store({ schema: type(Object) }).schema
+      let type1 = schemaStore(type({}), {}, createStore).schema
+        , type2 = schemaStore(type(Object), {}, createStore).schema
         , prop1
         , prop2
         ;

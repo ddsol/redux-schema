@@ -1,4 +1,4 @@
-import { type, Store } from '../../src';
+import schemaStore, { type } from '../../src';
 import { createStore } from 'redux';
 import { expect, should } from 'chai';
 import { baseTypeProperties, checkProperties } from './utils';
@@ -12,8 +12,7 @@ describe('Error', () => {
     ;
 
   beforeEach(() => {
-    store = new Store({ schema: type(Error), debug: true });
-    store.store = createStore(store.reducer);
+    store = schemaStore(type(Error), { debug: true }, createStore);
     schema = store.schema;
     actions = [];
     let origDispatch = store.dispatch;

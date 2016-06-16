@@ -12,7 +12,14 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
     , typeSnake = snakeCase(pathToStr(typePath)).replace('.', '_')
     ;
 
-  meta = { ...meta, type, typePath };
+  meta = {
+    ...meta,
+    type,
+    typePath,
+    registerRead() {
+      this.store.registerRead(this.storePath);
+    }
+  };
 
   Object.defineProperties(meta, {
     state: {

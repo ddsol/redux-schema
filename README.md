@@ -41,7 +41,7 @@ import { model, optional, Nil, bare, reference, collections, Store } from 'redux
 import { createStore } from 'redux';
 
 
-var userModel = schema('User', {
+let userModel = schema('User', {
   first: schema.optional(String),
   last: schema.optional(String),
 
@@ -86,15 +86,13 @@ var userModel = schema('User', {
   }
 });
 
-var root = collections([userModel]);
+let root = collections([userModel]);
 
-var store = new Store({ schema: root, debug: true });
+let store = schemaStore(root, { debug: true })(redux.createStore);
 
-store.store = redux.createStore(store.reducer);
+let { User } = store.models;
 
-var { User } = store.models;
-
-var user = new User('foo', 'bar');
+let user = new User('foo', 'bar');
 /* 
   generates:
   
@@ -212,7 +210,7 @@ user.address = { street: '123 west somewhere', town: 'Wiggletown' };
   with the usage of this data. The store is simply the backend representation.
 */
 
-var ref1 = user.address;
+let ref1 = user.address;
 user.address = { POBox : '101', town: '12' };
 /*
 
@@ -275,7 +273,7 @@ user.address = { street: '123 west somewhere', town: 'Wiggletown' };
     }
   }
 */
-var ref2 = user.address;
+let ref2 = user.address;
 
 console.log(ref1 === ref2, ref1.street, ref2.street)); //true, '123 west somewhere', '123 west somewhere';
 

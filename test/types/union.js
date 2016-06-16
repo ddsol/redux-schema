@@ -1,4 +1,4 @@
-import { type, Store } from '../../src';
+import schemaStore, { type } from '../../src';
 import { createStore } from 'redux';
 import { expect, should } from 'chai';
 import { baseTypeProperties, checkProperties } from './utils';
@@ -13,8 +13,7 @@ describe('Union', () => {
 
   context('type', () => {
     beforeEach(() => {
-      store = new Store({ schema: type([Number, String]), debug: true });
-      store.store = createStore(store.reducer);
+      store = schemaStore(type([Number, String]), { debug: true }, createStore);
       schema = store.schema;
       actions = [];
       let origDispatch = store.dispatch;
@@ -34,8 +33,7 @@ describe('Union', () => {
   context('instance', () => {
     context('non-clashing types', () => {
       beforeEach(() => {
-        store = new Store({ schema: type([Number, String]), debug: true });
-        store.store = createStore(store.reducer);
+        store = schemaStore(type([Number, String]), { debug: true }, createStore);
         schema = store.schema;
         actions = [];
         let origDispatch = store.dispatch;
@@ -71,8 +69,7 @@ describe('Union', () => {
 
     context('clashing types', () => {
       beforeEach(() => {
-        store = new Store({ schema: type([{ prop: Number }, { prop: String} ]), debug: true });
-        store.store = createStore(store.reducer);
+        store = schemaStore(type([{ prop: Number }, { prop: String} ]), { debug: true }, createStore);
         schema = store.schema;
         actions = [];
         let origDispatch = store.dispatch;

@@ -1,12 +1,5 @@
-function reducer(func) {
-  func.reducer = true;
-  return func;
-}
-
-function bare(func) {
-  func.noWrap = true;
-  return func;
-}
+import reducer from '../modifiers/reducer';
+import bare from '../modifiers/bare';
 
 export const arrayMethods = {
   concat: bare(function() {

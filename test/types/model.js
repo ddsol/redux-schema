@@ -1,4 +1,4 @@
-import { Store, model, ObjectId, collection } from '../../src';
+import schemaStore, { model, ObjectId, collection } from '../../src';
 import { createStore } from 'redux';
 import { expect, should } from 'chai';
 import { baseTypeProperties, checkProperties } from './utils';
@@ -11,8 +11,7 @@ describe('model', () => {
       , store
       ;
 
-    store = new Store({ schema: model('Model', { p:Number }), debug: true });
-    store.store = createStore(store.reducer);
+    store = schemaStore(model('Model', { p:Number }),{ debug: true }, createStore);
     schema = store.schema;
 
     checkProperties(() => schema, Object.assign({}, baseTypeProperties, {
@@ -24,37 +23,37 @@ describe('model', () => {
     context('Should throw on attempts to create a model from a type that isn\'t an object', () => {
       it('with undefined', () => {
         expect(() => {
-          new Store({ schema: model('Model', undefined), debug: true }); //eslint-disable-line no-new
+          schemaStore(model('Model', undefined), { debug: true }, createStore); //eslint-disable-line no-new
         }).to.throw();
       });
 
       it('with null', () => {
         expect(() => {
-          new Store({ schema: model('Model', null), debug: true }); //eslint-disable-line no-new
+          schemaStore(model('Model', null), { debug: true }, createStore); //eslint-disable-line no-new
         }).to.throw();
       });
 
       it('with Boolean', () => {
         expect(() => {
-          new Store({ schema: model('Model', Boolean), debug: true }); //eslint-disable-line no-new
+          schemaStore(model('Model', Boolean), { debug: true }, createStore); //eslint-disable-line no-new
         }).to.throw();
       });
 
       it('with String', () => {
         expect(() => {
-          new Store({ schema: model('Model', String), debug: true }); //eslint-disable-line no-new
+          schemaStore(model('Model', String), { debug: true }, createStore); //eslint-disable-line no-new
         }).to.throw();
       });
     });
 
     it('should create an id property if none passed', () => {
-      let store = new Store({ schema: model('Model', {}), debug: true });
+      let store = schemaStore(model('Model', {}), { debug: true }, createStore);
       store.schema.properties.should.have.property('id');
       store.schema.properties.id.name.should.equal('objectid');
     });
 
     it('should allow creation of a differently named id property', () => {
-      let store = new Store({ schema: model('Model', { ident: ObjectId }), debug: true });
+      let store = schemaStore(model('Model', { ident: ObjectId }), { debug: true }, createStore);
       store.schema.properties.should.not.have.property('id');
       store.schema.properties.should.have.property('ident');
       store.schema.properties.ident.name.should.equal('objectid');
@@ -62,7 +61,7 @@ describe('model', () => {
 
     it('should throw when the id property is set to a different type thasn ObjectId', () => {
       expect(() => {
-        new Store({ schema: model('Model', { id: String }), debug: true }); //eslint-disable-line no-new
+        schemaStore(model('Model', { id: String }), { debug: true }, createStore); //eslint-disable-line no-new
       }).to.throw;
     });
   });
@@ -70,22 +69,19 @@ describe('model', () => {
   context('instance', () => {
     it('should throw on attempt to create new instance without a collection', () => {
       expect(() => {
-        let store = new Store({ schema: model('Model', {}), debug: true })
+        let store = schemaStore(model('Model', {}), { debug: true }, createStore)
           , Model = store.schema
           ;
 
-        store.store = createStore(store.reducer);
         new Model(); //eslint-disable-line no-new
       }).to.throw();
     });
 
     it('should create new instance when in a collection', () => {
-      let store = new Store({ schema: collection(model('Model', {})), debug: true })
+      let store = schemaStore(collection(model('Model', {})), { debug: true }, createStore)
         , Model = store.instance.model
         , instance
         ;
-
-      store.store = createStore(store.reducer);
 
       instance = new Model();
       instance.id.should.be.ok;
@@ -93,13 +89,11 @@ describe('model', () => {
       store.instance.get(instance.id).should.equal(instance);
     });
 
-    it('should cerate an instabnce when called without new', () => {
-      let store = new Store({ schema: collection(model('Model', {})), debug: true })
+    it('should create an instance when called without new', () => {
+      let store = schemaStore(collection(model('Model', {})), { debug: true }, createStore)
         , Model = store.instance.model
         , instance
         ;
-
-      store.store = createStore(store.reducer);
 
       instance = Model();
       instance.id.should.be.ok;
