@@ -18,7 +18,8 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
     typePath,
     registerRead() {
       this.store.registerRead(this.storePath);
-    }
+    },
+    scratch: {}
   };
 
   Object.defineProperties(meta, {
