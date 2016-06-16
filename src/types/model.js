@@ -41,7 +41,6 @@ export default function model(name, model) {
       storePath = owner._meta.storePath.concat(id);
       instancePath = owner._meta.instancePath.concat(id);
       store.unpack(resultType, storePath, instancePath, this, owner);
-      store.put(instancePath, resultType.defaultValue());
       this.constructor.apply(this, args);
     }, model.constructor, !options.namedFunctions);
 

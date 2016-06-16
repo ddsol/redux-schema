@@ -216,7 +216,16 @@ export default class Store {
       this.internalState = updateProperty(this.internalState, path, action.value);
     } else {
       methodOrPropName = path.pop();
-      instance = this.traversePath(path);
+      try {
+        instance = this.traversePath(path);
+      } catch (err) {
+        if (/_CONSTRUCTOR$/.test(action.type) && /not found in state/.test(err.message) && action.args) {
+          this.put(action.path.slice(0, -1), {});
+          instance = this.traversePath(path);
+        } else {
+          throw err;
+        }
+      }
 
       this.verifyAction = action;
       if (action.args) {
