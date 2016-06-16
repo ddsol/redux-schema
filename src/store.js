@@ -154,11 +154,14 @@ export default class Store {
     }
     if (!action.path) return state;
     this.internalState = state;
-    this.result = this.executeAction(action);
-    state = this.internalState;
-    this.internalState = undefined;
-    if (this.options.freeze) {
-      freeze(state);
+    try {
+      this.result = this.executeAction(action);
+      state = this.internalState;
+      if (this.options.freeze) {
+        freeze(state);
+      }
+    } finally {
+      this.internalState = undefined;
     }
     return state;
   }
