@@ -1,6 +1,6 @@
 {
   "name": "redux-schema",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Automatic actions, reducers and validation for Redux. Use State like mutable objects without violating any of the redux principles.",
   "main": "lib/index.js",
   "jsnext:main": "es/index.js",
