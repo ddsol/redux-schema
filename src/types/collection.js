@@ -1,7 +1,8 @@
 import { namedFunction, dedent } from '../utils';
 import parseType from '../parse/parse-type';
+import { makeOwner } from './model';
 
-export default function collection(model) {
+export default function collection(model, extraProperties) {
   if (!model.isModel) {
     throw new TypeError('Collection items must be Models');
   }
@@ -29,7 +30,7 @@ export default function collection(model) {
           get model() {
             let self = this
               , BoundModel = namedFunction(modelType.name, function Model(...args) {
-                   return modelType.call(this, self,...args);
+                   return modelType.call(this, makeOwner(self), ...args);
                 }, modelType, !options.debug);
             BoundModel.prototype = modelType.prototype;
             Object.assign(BoundModel, modelType);

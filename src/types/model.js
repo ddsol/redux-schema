@@ -2,6 +2,8 @@ import { namedFunction, guid } from '../utils';
 import parseType from '../parse/parse-type';
 import ObjectId from './object-id';
 
+const isOwner = {};
+
 export default function model(name, model) {
   let collection = name[0].toLowerCase() + name.substr(1);
 
@@ -26,8 +28,12 @@ export default function model(name, model) {
         , storePath
         , instancePath
         ;
-      if (owner && owner._meta && owner._meta.store) {
+      if (owner && (owner.isOwner === isOwner) && owner.owner && owner.owner._meta && owner.owner._meta.store) {
         args.shift();
+        if (owner.id) {
+          id = owner.id;
+        }
+        owner = owner.owner;
       } else {
         owner = null;
       }
@@ -107,3 +113,8 @@ export default function model(name, model) {
   return Model;
 }
 
+export const makeOwner = (owner, id) => ({
+  isOwner,
+  owner,
+  id
+});
