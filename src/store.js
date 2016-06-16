@@ -15,7 +15,12 @@ export default class Store {
       throw new Error('Schema Store has no Redux Store assigned');
     }
 
-    let { schema, ... newOptions } = { typeMoniker: [], ...options, store: this };
+    let { schema, ... newOptions } = {
+      typeMoniker: [],
+      skipWriteSame: false,
+      ...options,
+      store: this
+    };
 
     options = newOptions;
 
@@ -120,6 +125,10 @@ export default class Store {
 
   put(path, value) {
     this.checkRecord();
+
+    if (this.options.skipWriteSame) {
+      if (this.get(path) === value) return;
+    }
 
     let action = {
       type: `SET_${propActionFromPath(path) || 'ROOT'}`,
