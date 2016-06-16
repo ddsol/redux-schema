@@ -47,6 +47,10 @@ export default function collection(model) {
       , thisType
       ;
 
+    if (extraProperties) {
+      type = {...extraProperties, ...type};
+    }
+
     thisType = parseType({ ...options, self }, type);
 
     thisType.name = `collection(${modelType.name})`;
