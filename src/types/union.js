@@ -53,7 +53,7 @@ export default function union(...types) {
       validateData: function(value, instancePath) {
         instancePath = instancePath || typeMoniker;
         if (!simple) {
-          if (typeof value.type !== 'string') {
+          if (!value || typeof value.type !== 'string') {
             return `Required type field not found for union "${pathToStr(instancePath)}"`;
           }
           if (!handlersById[value.type]) {
