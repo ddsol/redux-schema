@@ -21,35 +21,32 @@ export { default as type } from './parse/type';
 import Store from './store';
 
 export default function reduxSchemaStore(schema, options, createStore, preloadedState, enhancer) {
-  let result = createStore => {
+  let result = createStore => (reducer, preloadedState, enhancer) => {
+    let store = new Store({ schema: schema, ...options })
+      , redux
+      ;
 
-    return (reducer, preloadedState, enhancer) => {
-      let store = new Store({ schema: schema, ...options })
-        , redux
-        ;
+    if (preloadedState !== undefined) {
+      let message = store.schema.validateData(preloadedState);
+      if (message) throw new TypeError(`Can't use preloaded state: ${message}`);
+    }
 
-      if (preloadedState !== undefined) {
-        let message = store.schema.validateData(preloadedState);
-        if (message) throw new TypeError(`Can't use preloaded state: ${message}`);
-      }
+    if (reducer) {
+      let customReducer = reducer;
+      reducer = (state, action) => customReducer(store.reducer(state, action), action);
+    } else {
+      reducer = store.reducer;
+    }
 
-      if (reducer) {
-        let customReducer = reducer;
-        reducer = (state, action) => customReducer(store.reducer(state, action), action);
-      } else {
-        reducer = store.reducer;
-      }
+    redux = createStore(reducer, preloadedState, enhancer);
 
-      redux = createStore(reducer, preloadedState, enhancer);
+    store.getState = redux.getState;
+    store.replaceReducer = redux.replaceReducer;
+    store.subscribe = redux.subscribe;
 
-      store.getState = redux.getState;
-      store.replaceReducer = redux.replaceReducer;
-      store.subscribe = redux.subscribe;
+    store.store = redux;
 
-      store.store = redux;
-
-      return store;
-    };
+    return store;
   };
 
   return createStore ? result(createStore)(null, preloadedState, enhancer): result;
