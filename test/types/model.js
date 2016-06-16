@@ -106,5 +106,17 @@ describe('model', () => {
 
       store.instance.get(instance.id).should.equal(instance);
     });
+
+    it('should set properties when passed into the default constructor', () => {
+      let store = schemaStore(collection(model('Model', { foo: String, bar: Number, '*': Boolean })), { debug: true }, createStore)
+        , Model = store.instance.model
+        , instance
+        ;
+
+      instance = Model({ foo: 'baz', bar: 42, other: true });
+      instance.foo.should.equal('baz');
+      instance.bar.should.equal(42);
+      instance.get('other').should.equal(true);
+    });
   });
 });

@@ -55,7 +55,9 @@ export default function model(name, model) {
 
     if (!resultType.methods.hasOwnProperty('constructor')) {
       model.constructor = function(values) {
-        Object.assign(this, values);
+        if (values) {
+          Object.keys(values).forEach(prop => this.set(prop, values[prop]));
+        }
       };
       rebuild = true;
     }
