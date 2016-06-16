@@ -37,7 +37,7 @@ Redux-Schema is designed to overcome these issues. It allows you to use Redux wi
 A picture is worth 1000 words. Unfortunately, I'm no artist. So here's some code:
 
 ```js
-import { model, optional, Nil, bare, reference, collections, Store } from 'redux-schema';
+import schemaStore, { model, optional, Nil, bare, reference, collections } from 'redux-schema';
 import { createStore } from 'redux';
 
 
