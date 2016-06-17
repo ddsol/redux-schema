@@ -93,7 +93,7 @@ export default function parseObjectType(options, type, arrayType) {
     kind,
     storageKinds: [kind],
     options,
-    validateData: function(value, instancePath) {
+    validateData(value, instancePath) {
       instancePath = instancePath || typeMoniker;
       if (typeof value !== 'object') {
         return `Type of "${pathToStr(instancePath)}" data must be object`;
@@ -113,7 +113,7 @@ export default function parseObjectType(options, type, arrayType) {
         }, null)
       );
     },
-    validateAssign: function(value, instancePath) {
+    validateAssign(value, instancePath) {
       instancePath = instancePath || typeMoniker;
       if (typeof value !== 'object') {
         return `Type of "${pathToStr(instancePath)}" must be object`;
@@ -134,7 +134,7 @@ export default function parseObjectType(options, type, arrayType) {
         }, null)
       );
     },
-    pack: function(value) {
+    pack(value) {
       let out = arrayType ? [] : {};
       propNames.forEach(name => out[name] = properties[name].pack(value[name]));
 
@@ -150,7 +150,7 @@ export default function parseObjectType(options, type, arrayType) {
       }
       return out;
     },
-    unpack: function(store, storePath, instancePath, currentInstance, owner) {
+    unpack(store, storePath, instancePath, currentInstance, owner) {
       return hydrateInstance({
         ...options,
         prototype,
@@ -161,7 +161,27 @@ export default function parseObjectType(options, type, arrayType) {
         meta: { owner }
       });
     },
-    defaultValue: function() {
+    getTypeFromPath(path) {
+      if (!path.length) return typeMoniker;
+
+      let first = path[0]
+        , type
+        ;
+
+      if (propNames.indexOf(first) !== -1) {
+        type = properties[first];
+      } else {
+        if (!restType) {
+          if (this.virtuals[first] && path.length === 1) {
+            return options.typeMoniker.concat(first);
+          }
+          throw new Error(`Path not found: ${pathToStr(typeMoniker.concat(path))}`);
+        }
+        type = restType;
+      }
+      return type.getTypeFromPath(path.slice(1));
+    },
+    defaultValue() {
       let defaultValue = arrayType ? [] : {};
       Object.keys(properties).forEach(name => defaultValue[name] = properties[name].defaultValue());
       return defaultValue;

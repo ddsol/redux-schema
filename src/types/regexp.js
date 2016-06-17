@@ -10,7 +10,7 @@ export default function regExp(options) {
     kind: 'regexp',
     storageKinds: ['object'],
     options,
-    validateData: function(value, instancePath) {
+    validateData(value, instancePath) {
       let ok    = true
         , props = 2
         ;
@@ -43,13 +43,13 @@ export default function regExp(options) {
         return `Type of "${pathToStr(instancePath) || name}" data must be RegExp data object`;
       }
     },
-    validateAssign: function(value, instancePath) {
+    validateAssign(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!(value instanceof RegExp)) {
         return `Type of "${pathToStr(instancePath) || name}" must be RegExp`;
       }
     },
-    pack: function(value) {
+    pack(value) {
       let result = {
         pattern: value.source,
         flags: String(value).match(/[gimuy]*$/)[0]
@@ -59,7 +59,7 @@ export default function regExp(options) {
       }
       return result;
     },
-    unpack: function(store, path, instancePath, currentInstance) {
+    unpack(store, path, instancePath, currentInstance) {
       if (currentInstance) throw new Error('RegExp types cannot modify a data instance');
       let stored = store.get(path)
         , regExp = new RegExp(stored.pattern, stored.flags)
@@ -69,7 +69,11 @@ export default function regExp(options) {
       }
       return regExp;
     },
-    defaultValue: function() {
+    getTypeFromPath(path) {
+      if (path.length) throw new Error(`Cannot get type path for properties of RegExps`);
+      return options.typeMoniker;
+    },
+    defaultValue() {
       return {
         pattern: '',
         flags: ''

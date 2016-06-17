@@ -130,7 +130,7 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
   });
 
   Object.keys(virtuals).forEach((virtualName) => {
-    let actionType = `${typeSnake}_SET_${snakeCase(virtualName)}`
+    let actionType = `SET_${typeSnake}_${snakeCase(virtualName)}`
       , prop       = virtuals[virtualName]
       ;
 

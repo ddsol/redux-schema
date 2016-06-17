@@ -52,26 +52,30 @@ function basicType(options, type) {
     kind: type.name,
     storageKinds: [type.name],
     options,
-    validateData: function(value, instancePath) {
+    validateData(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!type.is(value)) {
         return `Type of "${pathToStr(instancePath)}" data must be ${type.name}`;
       }
     },
-    validateAssign: function(value, instancePath) {
+    validateAssign(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!type.is(value)) {
         return `Type of "${pathToStr(instancePath)}" must be ${type.name}`;
       }
     },
-    pack: function(value) {
+    pack(value) {
       return value;
     },
-    unpack: function(store, path, instancePath, currentInstance) {
+    unpack(store, path, instancePath, currentInstance) {
       if (currentInstance) throw new Error(`${upName} types cannot modify a data instance`);
       return store.get(path);
     },
-    defaultValue: function() {
+    getTypeFromPath(path) {
+      if (path.length) throw new Error(`Cannot get type path for properties of ${type.name}s`);
+      return options.typeMoniker;
+    },
+    defaultValue() {
       return type.defaultValue;
     }
   });

@@ -9,23 +9,23 @@ export default function reference(target) {
       kind: 'reference',
       storageKinds: ['string'],
       options,
-      validateData: function(value, instancePath) {
+      validateData(value, instancePath) {
         instancePath = instancePath || options.typeMoniker;
         if (typeof value !== 'string') {
           return `Reference data for "${pathToStr(instancePath)}" must be a string`;
         }
         if (!value) return 'Reference cannot be empty';
       },
-      validateAssign: function(value, instancePath) {
+      validateAssign(value, instancePath) {
         instancePath = instancePath || options.typeMoniker;
         if (typeof value !== 'object' || !value._meta || !value._meta.idKey) {
           return `Reference for "${pathToStr(instancePath)}" must be an object of type "${target}"`;
         }
       },
-      pack: function(value) {
+      pack(value) {
         return value[value._meta.idKey];
       },
-      unpack: function(store, storePath, instancePath, currentInstance, owner) {
+      unpack(store, storePath, instancePath, currentInstance, owner) {
         const findCollection = () => {
           let ancestor = owner
             , found
@@ -60,7 +60,11 @@ export default function reference(target) {
         if (!result) throw new ReferenceError(`Cannot dereference: No "${target}" with id "${id}" exists`);
         return result;
       },
-      defaultValue: function() {
+      getTypeFromPath(path) {
+        if (path.length) throw new Error('Type paths for references are not supported');
+        return options.typeMoniker;
+      },
+      defaultValue() {
         return '<unknown>';
       }
     });

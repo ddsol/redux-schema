@@ -16,12 +16,28 @@ export default function union(...types) {
       , handlers
       ;
 
-    handlers = types.map(type => parseType({ ...options, parent: options.self || self, self: null }, type));
+    function parse(type, name) {
+      var moniker = [...options.typeMoniker];
+      if (name) {
+        moniker.push(name);
+      }
+      return parseType({
+        ...options,
+        typeMoniker: moniker,
+        parent: options.self || self, self: null
+      }, type);
+    }
 
     //Flatten all unions: union(union(null, undefined), union(Number, String)) => union(null, undefined, Number, String)
-    handlers = Array.prototype.concat.apply([], handlers.map(handler => handler.kind === 'union' ? handler.handlers : handler));
+    types = Array.prototype.concat.apply([], types.map(type => {
+      let handler = parse(type);
+      if (handler.kind !== 'union') {
+        return type;
+      }
+      return handler.types;
+    }));
 
-    handlers.map((handler) => {
+    handlers = types.map(type => parse(type)).map((handler, ix) => {
       handler.storageKinds.forEach((kind) => {
         if (storageKinds[kind]) {
           simple = false;
@@ -33,7 +49,10 @@ export default function union(...types) {
         kinds[handler.kind] = 0;
       }
       kinds[handler.kind]++;
-      handlersById[`${kinds[handler.kind]}:${handler.kind}`] = handler;
+      let id = handler.kind + kinds[handler.kind];
+      handler = parse(types[ix], id);
+      handlersById[id] = handler;
+      return handler;
     });
 
     handlerIds = Object.keys(handlersById);
@@ -50,23 +69,26 @@ export default function union(...types) {
       kind: 'union',
       storageKinds: Object.keys(storageKinds),
       options,
-      validateData: function(value, instancePath) {
+      validateData(value, instancePath) {
         instancePath = instancePath || typeMoniker;
         if (!simple) {
-          if (!value || typeof value.type !== 'string') {
-            return `Required type field not found for union "${pathToStr(instancePath)}"`;
+          let keys = Object.keys(value||{})
+            , type = keys[0]
+            ;
+          if (!value || keys.length !== 1) {
+            return `Missing union type for union "${pathToStr(instancePath)}"`;
           }
-          if (!handlersById[value.type]) {
-            return `Unexpected type "${value.type}" for union "${pathToStr(instancePath)}"`;
+          if (!handlersById[type]) {
+            return `Unexpected type "${type}" for union "${pathToStr(instancePath)}"`;
           }
-          return handlersById[value.type].validateData(value.value, instancePath);
+          return handlersById[type].validateData(value[type], instancePath);
         }
         return (
           handlers.every(handler => handler.validateData(value, instancePath))
           && `No matching data type for union "${pathToStr(instancePath)}"`
         );
       },
-      validateAssign: function(value, instancePath) {
+      validateAssign(value, instancePath) {
         instancePath = instancePath || typeMoniker;
         let messages = []
           , handler
@@ -85,7 +107,7 @@ export default function union(...types) {
           return `Incompatible value ${value} for ${pathToStr(instancePath)}. ${messages.join(' -or- ')}.`;
         }
       },
-      pack: function(value) {
+      pack(value) {
         let messages = []
           , handler
           , packed
@@ -107,11 +129,10 @@ export default function union(...types) {
           return packed;
         }
         return {
-          type: idOfHandler(handler),
-          value: packed
+          [idOfHandler(handler)]: packed
         };
       },
-      unpack: function(store, path, instancePath, currentInstance, owner) {
+      unpack(store, path, instancePath, currentInstance, owner) {
         if (currentInstance) throw new Error('Union types cannot modify a data instance');
         let value = store.get(path);
         if (simple) {
@@ -122,23 +143,36 @@ export default function union(...types) {
           }
           throw new TypeError(`No matching data type for union "${pathToStr(instancePath)}"`);
         } else {
-          if (!handlersById[value.type]) {
-            return `Unexpected type "${value.type}" for union "${pathToStr(instancePath)}"`;
+          let type = Object.keys(value||{})[0];
+          if (!handlersById[type]) {
+            if (type) {
+              throw new Error(`Unexpected type "${type}" for union "${pathToStr(instancePath)}"`);
+            } else {
+              throw new Error(`Missing union type for union "${pathToStr(instancePath)}"`);
+            }
           }
-          return store.unpack(handlersById[value.type], path.concat('value'), instancePath, null, owner);
+          return store.unpack(handlersById[type], path.concat(type), instancePath, null, owner);
         }
       },
-      defaultValue: function() {
+      getTypeFromPath(path) {
+        if (!path.length) {
+          return options.typeMoniker;
+        }
+        let first = path[0];
+        if (!handlersById[first]) throw new Error(`Can't find union subtype ${first}, ${path}, ${handlers[0].options.typeMoniker}`);
+        return handlersById[first].getTypeFromPath(path.slice(1));
+      },
+      defaultValue() {
         return (
           simple
             ? handlers[0].defaultValue()
             : {
-            type: idOfHandler(handlers[0]),
-            value: handlers[0].defaultValue()
+            [idOfHandler(handlers[0])]: handlers[0].defaultValue()
           }
         );
       },
-      handlers
+      handlers,
+      types
     };
 
     return Object.assign(self, finalizeType(thisType));

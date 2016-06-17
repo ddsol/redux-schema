@@ -3,12 +3,6 @@ import deepMerge from 'deepmerge';
 
 const freeze = Object.freeze ? Object.freeze.bind(Object) : () => {};
 
-function propActionFromPath(path) {
-  let base = path.slice();
-  base.splice(1, 1);
-  return base.map(snakeCase).join('_');
-}
-
 export default class Store {
   constructor(options) {
     function error() {
@@ -54,7 +48,7 @@ export default class Store {
     let action = {
       type: actionType,
       path: instancePath,
-      value: value
+      arg: value
     };
 
     if (this.internalState === undefined) {
@@ -131,7 +125,7 @@ export default class Store {
     }
 
     let action = {
-      type: `SET_${propActionFromPath(path) || 'ROOT'}`,
+      type: `SET_${this.propActionFromPath(path) || 'ROOT'}`,
       path: path,
       value: value
     };
@@ -223,7 +217,7 @@ export default class Store {
       , result
       ;
 
-    if ('value' in action && action.type === `SET_${propActionFromPath(path) || 'ROOT'}`) {
+    if ('value' in action && action.type === `SET_${this.propActionFromPath(path) || 'ROOT'}`) {
       this.checkRecord();
       this.internalState = updateProperty(this.internalState, path, action.value);
     } else {
@@ -243,7 +237,7 @@ export default class Store {
       if (action.args) {
         result = instance[methodOrPropName].apply(instance, action.args);
       } else {
-        result = instance[methodOrPropName] = action.value;
+        result = instance[methodOrPropName] = action.arg;
       }
       this.verifyAction = null;
     }
@@ -382,6 +376,10 @@ export default class Store {
     if (this.record) {
       throw new Error('Cannot write state while in read registration mode');
     }
+  }
+
+  propActionFromPath(path) {
+    return snakeCase(pathToStr(this.schema.getTypeFromPath(path)).replace(/\./g,'_'));
   }
 
   get instance() {

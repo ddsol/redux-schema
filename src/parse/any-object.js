@@ -67,25 +67,25 @@ export default function anyObject(options, arrayType) {
     kind,
     storageKinds: [kind],
     options,
-    validateData: function(value, instancePath) {
+    validateData(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!isValidObject(value, arrayType)) {
         return `Type of "${pathToStr(instancePath)}" data must be ${kind}`;
       }
     },
-    validateAssign: function(value, instancePath) {
+    validateAssign(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!isValidObject(value, arrayType)) {
         return `Type of "${pathToStr(instancePath)}" data must be ${kind}`;
       }
     },
-    pack: function(value) {
+    pack(value) {
       if (!isValidObject(value, arrayType)) {
         throw new TypeError(`${pathToStr(options.typeMoniker)} only accepts simple ${kind}s`);
       }
       return clone(value);
     },
-    unpack: function(store, storePath, instancePath, currentInstance, owner) {
+    unpack(store, storePath, instancePath, currentInstance, owner) {
       return hydrateInstance({
         ...options,
         prototype,
@@ -95,6 +95,9 @@ export default function anyObject(options, arrayType) {
         currentInstance,
         meta: { owner }
       });
+    },
+    getTypeFromPath(path) {
+      return options.typeMoniker.concat(path);
     },
     defaultValue: () => arrayType ? [] : {},
     properties: {},

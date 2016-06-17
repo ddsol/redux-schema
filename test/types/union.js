@@ -85,8 +85,7 @@ describe('Union', () => {
 
       it('should allow correct state assignment', () => {
         store.state = {
-          type: '2:object',
-          value: {
+          object2: {
             prop: 'Foo'
           }
         };
@@ -96,14 +95,12 @@ describe('Union', () => {
         expect(() => store.state = 0).to.throw(TypeError);
         expect(() => store.state = { prop:0 }).to.throw(TypeError);
         expect(() => store.state = {
-          type: '1:object',
-          value: {
+          object1: {
             prop: 'Foo'
           }
         }).to.throw(TypeError);
         expect(() => store.state = {
-          type: '2:object',
-          value: {
+          object2: {
             prop: 42
           }
         }).to.throw(TypeError);
@@ -112,15 +109,13 @@ describe('Union', () => {
       it('should allow assignment of each constituent type', () => {
         store.instance = { prop: 8675309 };
         store.state.should.deep.equal({
-          type: '1:object',
-          value: {
+          object1: {
             prop: 8675309
           }
         });
         store.instance = { prop: 'Foo the Bar' };
         store.state.should.deep.equal({
-          type: '2:object',
-          value: {
+          object2: {
             prop: 'Foo the Bar'
           }
         });

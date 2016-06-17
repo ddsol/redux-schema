@@ -9,26 +9,30 @@ export default function date(options) {
     kind: 'date',
     storageKinds: ['string'],
     options,
-    validateData: function(value, instancePath) {
+    validateData(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (value !== '' && (typeof value !== 'string' || (new Date(value)).toJSON() !== value)) {
         return `Type of "${pathToStr(instancePath) || name}" data must be Date string`;
       }
     },
-    validateAssign: function(value, instancePath) {
+    validateAssign(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
       if (!(value instanceof Date)) {
         return `Type of "${pathToStr(instancePath) || name}" must be Date`;
       }
     },
-    pack: function(value) {
+    pack(value) {
       return value.toJSON() || '';
     },
-    unpack: function(store, path, instancePath, currentInstance) {
+    unpack(store, path, instancePath, currentInstance) {
       if (currentInstance) throw new Error('Date types cannot modify a data instance');
       return new Date(store.get(path) || 'Invalid Date');
     },
-    defaultValue: function() {
+    getTypeFromPath(path) {
+      if (path.length) throw new Error(`Cannot get type path for properties of Dates`);
+      return options.typeMoniker;
+    },
+    defaultValue() {
       return '';
     }
   });
