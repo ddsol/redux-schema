@@ -1,14 +1,22 @@
 import reducer from '../modifiers/reducer';
 import bare from '../modifiers/bare';
 
+function recordLength(array) {
+  if (!array._meta.storePath) {
+    console.log(Object.keys(array._meta));
+  }
+  array._meta.recordRead(array._meta.storePath.concat('length'));
+}
+
 export const arrayMethods = {
   concat: bare(function() {
-    return this._meta.state.concat.apply(this._meta.state, arguments);
+    var plain = this.slice();
+    return plain.concat.apply(plain, arguments);
   }),
 
   copyWithin: reducer(function(state, args) {
-    let dupe = state.slice();
-    return dupe.copyWithin.apply(dupe, args);
+    let plain = state.slice();
+    return plain.copyWithin.apply(plain, args);
   }),
 
   every: bare(function(func, thisArg) {
@@ -22,19 +30,22 @@ export const arrayMethods = {
 
   fill: function(value, start, end) {
     start = start || 0;
+
+    let length = this.length;
+
     if (start < 0) {
-      start = Math.max(0, this.length + start);
+      start = Math.max(0, length + start);
     } else {
-      start = Math.min(this.length, start);
+      start = Math.min(length, start);
     }
 
     if (end === undefined) {
-      end = this.length;
+      end = length;
     }
     if (end < 0) {
-      end = Math.max(0, this.length + end);
+      end = Math.max(0, length + end);
     } else {
-      end = Math.min(this.length, end);
+      end = Math.min(length, end);
     }
 
     for (let i = start; i < end; i++) {
@@ -94,12 +105,14 @@ export const arrayMethods = {
   includes: bare(function(item, start) {
     start = start || 0;
 
+    let length = this.length;
+
     if (start < 0) {
-      start = Math.max(0, start + this.length);
+      start = Math.max(0, start + length);
     }
 
     if (item !== item) { //NaN check
-      for (let i = start; i < this.length; i++) {
+      for (let i = start; i < length; i++) {
         item = this.get(i);
         if (item !== item) {
           return true;
@@ -108,7 +121,7 @@ export const arrayMethods = {
       return false;
     }
 
-    for (let i = start; i < this.length; i++) {
+    for (let i = start; i < length; i++) {
       if (item === this.get(i)) {
         return true;
       }
@@ -120,11 +133,13 @@ export const arrayMethods = {
   indexOf: bare(function(item, start) {
     start = start || 0;
 
+    let length = this.length;
+
     if (start < 0) {
-      start = Math.max(0, this.length + start);
+      start = Math.max(0, length + start);
     }
 
-    for (let i = start; i < this.length; i++) {
+    for (let i = start; i < length; i++) {
       if (item === this.get(i)) {
         return i;
       }
@@ -134,17 +149,19 @@ export const arrayMethods = {
 
   join: bare(function(separator) {
     let result = [];
-    for (let i = 0; i < this.length; i++) {
+
+    for (let i = 0, l = this.length; i < l; i++) {
       result.push(this.get(i));
     }
     return result.join(separator);
   }),
 
   lastIndexOf: bare(function(item, start) {
-    start = start || this.length - 1;
+    let length = this.length;
+    start = start || length - 1;
 
     if (start < 0) {
-      start = Math.max(0, start + this.length);
+      start = Math.max(0, start + length);
     }
 
     for (let i = start; i >= 0; i--) {
@@ -169,8 +186,16 @@ export const arrayMethods = {
 
   pop: reducer(function(state, args, result) {
     let newState = state.slice();
+
     result.result = this.get(newState.length - 1);
-    if (result.result && typeof result.result.toObject === 'function') {
+
+    let isRef = false;
+
+    if (this._meta.type.getPropType) {
+      isRef = this._meta.type.getPropType(newState.length - 1).kind === 'reference';
+    }
+
+    if (!isRef && result.result && typeof result.result.toObject === 'function') {
       result.result = result.result.toObject();
     }
     newState.pop();
@@ -189,12 +214,14 @@ export const arrayMethods = {
 
   reduce: bare(function(func, initialValue) {
     if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
-    let reduced
+
+    let length = this.length
+      , reduced
       , start
       ;
 
     if (arguments.length < 2) {
-      if (!this.length) throw new TypeError('Reduce of empty array with no initial value');
+      if (!length) throw new TypeError('Reduce of empty array with no initial value');
       reduced = this.get(0);
       start = 1;
     } else {
@@ -202,7 +229,7 @@ export const arrayMethods = {
       start = 0;
     }
 
-    for (let i = start, l = this.length; i < l; i++) {
+    for (let i = start; i < length; i++) {
       reduced = func(reduced, this.get(i), i, this);
     }
 
@@ -211,17 +238,18 @@ export const arrayMethods = {
 
   reduceRight: bare(function(func, initialValue) {
     if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
-    let reduced
+    let length = this.length
+      , reduced
       , start
       ;
 
     if (arguments.length < 2) {
-      if (!this.length) throw new TypeError('Reduce of empty array with no initial value');
-      reduced = this.get(this.length - 1);
-      start = this.length - 2;
+      if (!length) throw new TypeError('Reduce of empty array with no initial value');
+      reduced = this.get(length - 1);
+      start = length - 2;
     } else {
       reduced = initialValue;
-      start = this.length - 1;
+      start = length - 1;
     }
 
     for (let i = start; i >= 0; i--) {
@@ -248,9 +276,12 @@ export const arrayMethods = {
 
   slice: bare(function(start, end) {
     start = start || 0;
-    if (start < 0) start += this.length;
-    end = end || this.length;
-    if (end < 0) end += this.length;
+
+    let length = this.length;
+
+    if (start < 0) start += length;
+    end = end || length;
+    if (end < 0) end += length;
 
     let result = [];
 
@@ -345,6 +376,7 @@ export const arrayMethods = {
 export const arrayVirtuals = {
   length: {
     get: function() {
+      recordLength(this);
       return this._meta.state.length;
     },
     set: function(value) {

@@ -374,7 +374,7 @@ export default class Store {
 
   checkRecord() {
     if (this.record) {
-      throw new Error('Cannot write state while in read registration mode');
+      throw new Error('Cannot write state while in read recording mode');
     }
   }
 

@@ -74,19 +74,19 @@ describe('Array (defined)', () => {
 
       it('should add all arguments when they are not arrays', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }];
-        store.instance.concat({ v: 4 }, { v: 5 }).should.deep.equal([{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }]);
+        store.instance.concat(1, 2).map(v => v.toObject ? v.toObject() : v).should.deep.equal([{ v: 1 }, { v: 2 }, { v: 3 }, 1, 2]);
       });
 
       it('should concatenate all arguments when they are arrays', () => {
         store.state = [{ v: 1 }, { v: 2 }, { v: 3 }];
-        store.instance.concat([{ v: 4 }, { v: 5 }], [{ v: 6 }, { v: 7 }]).should.deep.equal([
+        store.instance.concat([1, 2], [3, 4]).map(v => v.toObject ? v.toObject() : v).should.deep.equal([
           { v: 1 },
           { v: 2 },
           { v: 3 },
-          { v: 4 },
-          { v: 5 },
-          { v: 6 },
-          { v: 7 }
+          1,
+          2,
+          3,
+          4
         ]);
       });
     });

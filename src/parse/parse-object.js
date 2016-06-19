@@ -115,36 +115,70 @@ export default function parseObjectType(options, type, arrayType) {
     },
     validateAssign(value, instancePath) {
       instancePath = instancePath || typeMoniker;
+
       if (typeof value !== 'object') {
         return `Type of "${pathToStr(instancePath)}" must be object`;
       }
+
+      let isSchemaObject = value && value._meta && value._meta.type && (value._meta.type.kind === 'object' || value._meta.type.kind === 'array');
+
+      function getProp(prop) {
+        if (isSchemaObject) {
+          return value.get(prop);
+        }
+        return value[prop];
+      }
+
+      function getKeys(value) {
+        if (isSchemaObject) {
+          return value.keys;
+        }
+        return Object.keys(value);
+      }
+
       instancePath = instancePath || typeMoniker;
       return (
-        propNames.reduce((message, name) => message || properties[name].validateAssign(value[name], instancePath.concat(name)), null)
-        || Object.keys(value).reduce((message, name) => {
+        propNames.reduce((message, name) => message || properties[name].validateAssign(getProp(name), instancePath.concat(name)), null)
+        || getKeys(value).reduce((message, name) => {
           if (message) return message;
+          if (propNames.indexOf(name) !== -1) return null;
           if (restType) {
-            if (propNames.indexOf(name) !== -1) return null;
-            return restType.validateAssign(value[name], instancePath.concat(name));
+            return restType.validateAssign(getProp(name), instancePath.concat(name));
           } else {
-            if (propNames.indexOf(name) === -1) {
-              return `Unknown property "${pathToStr(instancePath.concat(name))}"`;
-            }
+            return `Unknown property "${pathToStr(instancePath.concat(name))}"`;
           }
         }, null)
       );
     },
     pack(value) {
+      var isSchemaObject = value && value._meta && value._meta.type && (value._meta.type.kind === 'object' || value._meta.type.kind === 'array');
+
+      function getProp(prop) {
+        if (isSchemaObject) {
+          return value.get(prop);
+        }
+        return value[prop];
+      }
+
+      function getKeys(value) {
+        if (isSchemaObject) {
+          return value.keys;
+        }
+        return Object.keys(value);
+      }
+
       let out = arrayType ? [] : {};
-      propNames.forEach(name => out[name] = properties[name].pack(value[name]));
+      propNames.forEach(name => out[name] = properties[name].pack(getProp(name)));
 
       if (restType) {
-        Object.keys(value).forEach((name) => {
+        getKeys(value).forEach((name) => {
           if (propNames.indexOf(name) === -1) {
-            if ((isNaN(name) || ((Number(name) % 1) !== 0) || Number(name) < 0 || String(Number(name)) !== String(name))) {
-              throw new TypeError(`Cannot set "${pathToStr(options.typeMoniker.concat(name))}" property on array`);
+            if (arrayType) {
+              if ((isNaN(name) || ((Number(name) % 1) !== 0) || Number(name) < 0 || String(Number(name)) !== String(name))) {
+                throw new TypeError(`Cannot set "${pathToStr(options.typeMoniker.concat(name))}" property on array`);
+              }
             }
-            out[name] = restType.pack(value[name]);
+            out[name] = restType.pack(getProp(name));
           }
         });
       }
@@ -190,10 +224,19 @@ export default function parseObjectType(options, type, arrayType) {
     restType,
     methods,
     virtuals,
-    defaultRestProp: function() {
+    getPropType(name) {
+      if (propNames.indexOf(name) !== -1) {
+        return properties[name];
+      } else {
+        if (!restType) throw new TypeError(`Unknown property ${pathToStr(typeMoniker.concat(name))}`);
+        return restType;
+      }
+    },
+    defaultRestProp() {
       if (restType) return restType.defaultValue();
     },
-    packProp: function(name, value) {
+    packProp(name, value) {
+      let type;
       if (propNames.indexOf(name) !== -1) {
         type = properties[name];
       } else {

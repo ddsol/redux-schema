@@ -45,14 +45,28 @@ export default function anyObject(options, arrayType) {
       return obj;
     }
     let out  = isArray(obj) ? [] : {}
-      , keys = Object.keys(obj)
+      , isSchemaObject = obj && obj._meta && obj._meta.type && (obj._meta.type.kind === 'object' || obj._meta.type.kind === 'array')
+      , keys
       , key
       , value
       ;
 
+    function getProp(prop) {
+      if (isSchemaObject) {
+        return obj.get(prop);
+      }
+      return obj[prop];
+    }
+
+    if (isSchemaObject) {
+      keys = obj.keys;
+    } else {
+      keys = Object.keys(obj);
+    }
+
     for (let i = 0; i < keys.length; i++) {
       key = keys[i];
-      value = obj[key];
+      value = getProp(key);
       if (typeof value === 'object' && value !== null) {
         value = clone(value);
       }
@@ -99,13 +113,15 @@ export default function anyObject(options, arrayType) {
     getTypeFromPath(path) {
       return options.typeMoniker.concat(path);
     },
-    defaultValue: () => arrayType ? [] : {},
+    defaultValue(){
+      return arrayType ? [] : {};
+    },
     properties: {},
     methods: {},
     virtuals: {},
-    defaultRestProp: () => {},
-    packProp: function(name, value) {
-      if (typeof value === 'object' && value === null && !isValidObject(value)) {
+    defaultRestProp(){},
+    packProp(name, value) {
+      if (typeof value === 'object' && value !== null && !isValidObject(value)) {
         throw new TypeError(`${pathToStr(options.typeMoniker.concat(name))} only accepts simple types`);
       }
       return clone(value);

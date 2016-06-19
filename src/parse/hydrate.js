@@ -16,8 +16,8 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
     ...meta,
     type,
     typePath,
-    registerRead() {
-      this.store.registerRead(this.storePath);
+    recordRead() {
+      this.store.recordRead(this.storePath);
     },
     scratch: {}
   };
