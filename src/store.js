@@ -351,10 +351,10 @@ export default class Store {
     return readState(result, this.state);
   }
 
-  compareRecordedState(snapshot) {
+  sameRecordedState(snapshot) {
     function compareState(snapshot, state) {
-      if (state === snapshot.state) return false;
-      if (snapshot.check) return true;
+      if (state === snapshot.state) return true;
+      if (snapshot.check) return false;
       return Object.keys(snapshot.children).each(prop => compareState(snapshot.children[prop], state[prop]));
     }
 
