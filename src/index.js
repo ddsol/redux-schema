@@ -1,5 +1,6 @@
 //Export types
 export { default as union } from './types/union';
+export { default as tuple } from './types/tuple';
 export { default as Any } from './types/any';
 export { default as Nil } from './types/nil';
 export { default as reference } from './types/reference';

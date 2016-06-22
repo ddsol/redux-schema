@@ -21,7 +21,7 @@ export default function parseObjectType(options, type, arrayType) {
     , virtuals    = {}
     , methods     = {}
     , meta        = {}
-    , kind        = arrayType ? 'array' : 'object'
+    , kind        = arrayType ? ( type.length === 1 ? 'array' : 'tuple' ) : 'object'
     , prototype
     , thisType
     , restType
@@ -289,6 +289,8 @@ export default function parseObjectType(options, type, arrayType) {
         , newState
         , packed
         ;
+
+      name = String(name);
 
       if (propNames.indexOf(name) !== -1) {
         type = properties[name];
