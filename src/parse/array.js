@@ -20,7 +20,7 @@ export const arrayMethods = {
   }),
 
   every: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    if (typeof func !== 'function') throw new TypeError(`${func} is not a function`);
 
     for (let i = 0, l = this.length; i < l; i++) {
       if (!func.call(thisArg, this.get(i), i, this)) return false;
@@ -55,7 +55,7 @@ export const arrayMethods = {
   },
 
   filter: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    if (typeof func !== 'function') throw new TypeError(`${func} is not a function`);
 
     let result = []
       , item;
@@ -71,7 +71,7 @@ export const arrayMethods = {
   }),
 
   find: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    if (typeof func !== 'function') throw new TypeError(`${func} is not a function`);
 
     let item;
     for (let i = 0, l = this.length; i < l; i++) {
@@ -83,7 +83,7 @@ export const arrayMethods = {
   }),
 
   findIndex: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    if (typeof func !== 'function') throw new TypeError(`${func} is not a function`);
 
     let item;
     for (let i = 0, l = this.length; i < l; i++) {
@@ -95,7 +95,7 @@ export const arrayMethods = {
   }),
 
   forEach: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    if (typeof func !== 'function') throw new TypeError(`${func} is not a function`);
 
     for (let i = 0, l = this.length; i < l; i++) {
       func.call(thisArg, this.get(i), i, this);
@@ -173,7 +173,7 @@ export const arrayMethods = {
   }),
 
   map: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    if (typeof func !== 'function') throw new TypeError(`${func} is not a function`);
 
     let result = [];
 
@@ -213,7 +213,7 @@ export const arrayMethods = {
   }),
 
   reduce: bare(function(func, initialValue) {
-    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    if (typeof func !== 'function') throw new TypeError(`${func} is not a function`);
 
     let length = this.length
       , reduced
@@ -237,7 +237,7 @@ export const arrayMethods = {
   }),
 
   reduceRight: bare(function(func, initialValue) {
-    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    if (typeof func !== 'function') throw new TypeError(`${func} is not a function`);
     let length = this.length
       , reduced
       , start
@@ -292,7 +292,7 @@ export const arrayMethods = {
   }),
 
   some: bare(function(func, thisArg) {
-    if (typeof func !== 'function') throw new TypeError(`{$func} is not a function`);
+    if (typeof func !== 'function') throw new TypeError(`${func} is not a function`);
 
     for (let i = 0, l = this.length; i < l; i++) {
       if (func.call(thisArg, this.get(i), i, this)) return true;

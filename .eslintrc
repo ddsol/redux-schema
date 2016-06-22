@@ -5,25 +5,28 @@
     "browser": true,
     "builtin": true
   },
-  "ecmaFeatures": {
-    "modules": true,
-    "arrowFunctions": true,
-    "blockBindings": true,
-    "classes": true,
-    "defaultParams": true,
-    "destructuring": true,
-    "forOf": true,
-    "generators": true,
-    "objectLiteralComputedProperties": true,
-    "objectLiteralDuplicateProperties": true,
-    "objectLiteralShorthandMethods": true,
-    "objectLiteralShorthandProperties": true,
-    "octalLiterals": true,
-    "restParams": true,
-    "spread": true,
-    "templateStrings": true,
-    "unicodeCodePointEscapes": true,
-    "experimentalObjectRestSpread": true
+  "parserOptions": {
+    "ecmaFeatures": {
+      "arrowFunctions": true,
+      "blockBindings": true,
+      "classes": true,
+      "defaultParams": true,
+      "destructuring": true,
+      "forOf": true,
+      "generators": true,
+      "modules": true,
+      "objectLiteralComputedProperties": true,
+      "objectLiteralDuplicateProperties": true,
+      "objectLiteralShorthandMethods": true,
+      "objectLiteralShorthandProperties": true,
+      "octalLiterals": true,
+      "restParams": true,
+      "spread": true,
+      "templateStrings": true,
+      "unicodeCodePointEscapes": true,
+      "experimentalObjectRestSpread": true
+    },
+    "sourceType": "module"
   },
   "rules": {
     "block-scoped-var": 2,
@@ -53,9 +56,9 @@
     "no-undef": 2,
     "no-unused-vars": [2, { "vars": "all", "args": "none" }],
     "no-with": 2,
-    "quotes": [ 2, "single" ],
+    "quotes": [ 2, "single", { "allowTemplateLiterals": true } ],
     "semi": [ 2, "always" ],
-    "space-after-keywords": [ 2, "always" ],
+    "keyword-spacing": [ "error" ],
     "valid-typeof": 2,
     "wrap-iife": [ 2, "inside" ]
   }
