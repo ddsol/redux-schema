@@ -139,3 +139,15 @@ export function dedent(strings, ...args) {
 
   return string.replace(replace, '\n').substr(1);
 }
+
+export function isGenerator(obj) {
+  return  typeof obj.next === 'function' && typeof obj.throw === 'function';
+}
+
+export function isGeneratorFunction(obj) {
+  var constructor = obj.constructor;
+  if (!constructor) return false;
+  if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction') return true;
+  return isGenerator(constructor.prototype);
+}
+

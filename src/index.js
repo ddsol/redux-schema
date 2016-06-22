@@ -13,6 +13,7 @@ export { default as optional } from './modifiers/optional';
 export { default as validate } from './modifiers/validate';
 export { default as bare } from './modifiers/bare';
 export { default as reducer } from './modifiers/reducer';
+export { default as wrapGenerator } from './modifiers/wrap-generator';
 export { default as autoResolve } from './modifiers/auto-resolve';
 
 //Export generic type parser

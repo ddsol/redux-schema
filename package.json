@@ -18,13 +18,15 @@
     "check:src": "npm run lint && npm run test",
     "check:push": "npm run lint && npm run test:push",
     "check:pushwin": "hidecon && npm run check:push",
+    "check:es3-syntax": "check-es3-syntax lib/ dist/ --kill",
+    "check:es3-syntax-print": "check-es3-syntax lib/ dist/ -p",
     "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
     "build:es": "cross-env BABEL_ENV=es babel src --out-dir es",
     "build:umd": "cross-env BABEL_ENV=commonjs NODE_ENV=development webpack src/index.js dist/redux-schema.js",
     "build:umd:min": "cross-env BABEL_ENV=commonjs NODE_ENV=production webpack src/index.js dist/redux-schema.min.js",
     "build:examples": "cross-env BABEL_ENV=commonjs babel-node examples/buildAll.js",
     "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd:min",
-    "prepublish": "npm run clean && npm run check:src && npm run build && check-es3-syntax lib/ dist/ --kill",
+    "prepublish": "npm run clean && npm run check:src && npm run build && npm run check:es3-syntax",
     "coverage": "cross-env BABEL_ENV=commonjs babel-node node_modules/isparta/bin/isparta cover node_modules/mocha/bin/_mocha -- --recursive -R dot",
     "coveralls": "npm run lint && cross-env BABEL_ENV=commonjs babel-node node_modules/isparta/bin/isparta cover node_modules/mocha/bin/_mocha --report lcovonly -- --recursive -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
@@ -45,6 +47,7 @@
     "url": "https://github.com/ddsol/redux-schema/issues"
   },
   "dependencies": {
+    "co": "^4.6.0",
     "deepmerge": "^0.2.10",
     "node-uuid": "^1.4.7",
     "serialize-error": "^1.1.0",

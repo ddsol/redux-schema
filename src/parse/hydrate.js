@@ -1,4 +1,6 @@
 import { snakeCase, pathToStr, namedFunction, toObject } from '../utils';
+import co from 'co';
+import { isGeneratorFunction } from '../utils';
 
 function freezeObject(obj) {
   if (Object.freeze) {
@@ -6,7 +8,7 @@ function freezeObject(obj) {
   }
 }
 
-export function hydratePrototype({ type, typePath, getter, setter, keys, properties = {}, methods = {}, virtuals = {}, meta = {}, freeze, namedFunctions }) {
+export function hydratePrototype({ type, typePath, getter, setter, keys, properties = {}, methods = {}, virtuals = {}, meta = {}, freeze, namedFunctions, wrapGenerators = false, generatorWrapper }) {
   let prototype = Object.create(type.kind === 'array' ? Array.prototype : Object.prototype)
     , define    = {}
     , typeSnake = snakeCase(pathToStr(typePath)).replace('.', '_')
@@ -106,12 +108,26 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
     let invokeName = methodName
       , method     = methods[methodName]
       , actionType = (typeSnake ? typeSnake + '_' : '') + snakeCase(methodName)
+      , func       = method
+      , wrap
+      , wrapper
       ;
+
+    wrapper = generatorWrapper || co.wrap;
+    wrap = ('wrapGenerator' in method) ? method.wrapGenerator : wrapGenerators;
+
+    if (typeof wrap === 'function') {
+      wrapper = wrap;
+    }
+
+    if (wrap && isGeneratorFunction(func)) {
+      func = wrapper(func);
+    }
 
     if (method.noWrap) {
       define[methodName] = {
         enumerable: true,
-        value: method
+        value: func
       };
     } else {
       if (methodName === 'constructor') {
@@ -123,7 +139,7 @@ export function hydratePrototype({ type, typePath, getter, setter, keys, propert
           let meta = this._meta
             , path = meta.instancePath.concat(methodName)
             ;
-          return meta.store.invoke(this, actionType, path, methods[methodName], args);
+          return meta.store.invoke(this, actionType, path, func, args);
         }, method, !namedFunctions)
       };
     }

@@ -58,7 +58,7 @@ export default function parseObjectType(options, type, arrayType) {
     let descriptor = Object.getOwnPropertyDescriptor(type, prop);
     if (descriptor.get
       || descriptor.set
-      || (typeof descriptor.value === 'function' && !functionIsType(descriptor.value))
+      || ((typeof descriptor.value === 'function' || (descriptor.value && typeof descriptor.value.method === 'function' ) ) && !functionIsType(descriptor.value))
     ) {
       if (descriptor.value) {
         methods[prop] = descriptor.value;

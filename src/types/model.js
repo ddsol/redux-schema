@@ -67,21 +67,9 @@ export default function model(name, model) {
       rebuild = true;
     }
 
-    if (!idKey) {
-      if (resultType.properties.id) {
-        throw new TypeError(`The "id" property of "${name}" must be an ObjectId`);
-      }
-      model.id = ObjectId;
-      idKey = 'id';
-      rebuild = true;
-    }
-    if (rebuild) {
-      resultType = parseType({ ...options, self: ResultModel }, model);
-    }
+    let origConstructor = model.constructor;
 
-    let origConstructor = resultType.methods.constructor;
-
-    resultType.methods.constructor = namedFunction(name, function() {
+    model.constructor = namedFunction(name, function() {
       let storeInstance
         , path = this._meta.storePath
         ;
@@ -94,6 +82,18 @@ export default function model(name, model) {
         origConstructor.apply(this, arguments);
       }
     }, origConstructor, !options.namedFunctions);
+
+    if (!idKey) {
+      if (resultType.properties.id) {
+        throw new TypeError(`The "id" property of "${name}" must be an ObjectId`);
+      }
+      model.id = ObjectId;
+      idKey = 'id';
+      rebuild = true;
+    }
+    if (rebuild) {
+      resultType = parseType({ ...options, self: ResultModel }, model);
+    }
 
     Object.assign(ResultModel, resultType, {
       prototype: resultType.prototype,
