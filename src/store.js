@@ -42,6 +42,7 @@ export default class Store {
     this.cachePaths = [];
     this.record = null;
     this.recordStack = [];
+    this.traceSuspended = 0;
   }
 
   setVirtual(obj, actionType, instancePath, setter, value) {
@@ -288,7 +289,6 @@ export default class Store {
   recordRead(path) {
     if (!this.record) return;
     let reg  = this.record
-      , last = reg
       ;
 
     for (let i = 0; i < path.length; i++) {
@@ -299,22 +299,22 @@ export default class Store {
       if (!reg.children[prop]) {
         reg.children[prop] = { children: {} };
       }
-      last = reg;
       reg = reg.children[prop];
     }
 
-    last.check = true;
+    reg.check = true;
   }
 
   startRecord() {
-    if (this.record) {
+    if (this.record && !this.traceSuspended) {
       this.recordStack.push(this.record);
     }
     this.record = { children: {} };
+    var current = this.record;
     if (this.options.debug) {
       var traceError = new Error('startRecord called without a matching stopRecord');
-      process.nextTick(()=>{
-        if (this.record) {
+      process.nextTick(() => {
+        if (this.record === current) {
           throw traceError;
         }
       });
@@ -352,13 +352,18 @@ export default class Store {
   }
 
   sameRecordedState(snapshot) {
-    function compareState(snapshot, state) {
-      if (state === snapshot.state) return true;
-      if (snapshot.check) return false;
-      return Object.keys(snapshot.children).each(prop => compareState(snapshot.children[prop], state[prop]));
+    function compareState(snapshot, snapShotState, state) {
+      if (state === snapShotState) return true;
+      if (snapshot.check) {
+        if (!state || !snapShotState || typeof state !== 'object' || typeof snapShotState !== 'object') return false;
+        //Only compare this object itself, which only includes the names of the properties. Their values have their own trackers.
+        for (let prop in state) if (!(prop in snapShotState)) return false;
+        for (let prop in snapShotState) if (!(prop in state)) return false;
+      }
+      return Object.keys(snapshot.children).every(prop => snapShotState && state && compareState(snapshot.children[prop], snapShotState[prop], state[prop]));
     }
 
-    return compareState(snapshot, this.state);
+    return compareState(snapshot, snapshot.state, this.state);
   }
 
   trace(func, remove) {
@@ -370,6 +375,15 @@ export default class Store {
       result = this.stopRecord(remove);
     }
     return result;
+  }
+
+  suspendTrace(func) {
+    this.traceSuspended++;
+    try {
+      func();
+    } finally {
+      this.traceSuspended--;
+    }
   }
 
   checkRecord() {

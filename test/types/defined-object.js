@@ -69,12 +69,12 @@ describe('Object (defined)', () => {
         store.instance.get('v').should.equal(7);
       });
 
-      it('should return undefined for properties that don\'t exist', () => {
+      it('should throw for properties that don\'t exist', () => {
         store.state = { v: 1 };
-        expect(store.instance.get('d')).to.be.undefined;
-        expect(store.instance.get(0)).to.be.undefined;
-        expect(store.instance.get()).to.be.undefined;
-        expect(store.instance.get('missing')).to.be.undefined;
+        expect(()=>store.instance.get('d')).to.throw;
+        expect(()=>store.instance.get(0)).to.throw;
+        expect(()=>store.instance.get()).to.throw;
+        expect(()=>store.instance.get('missing')).throw;
       });
     });
 

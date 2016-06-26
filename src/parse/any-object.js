@@ -186,6 +186,7 @@ export default function anyObject(options, arrayType) {
       }
       meta.store.put(meta.storePath.concat(name), clone(value));
     }, keys() {
+      this._meta.store.recordRead(this._meta.storePath);
       let state = this._meta.state;
       if (storedState !== state) {
         storedKeys = Object.keys(state);

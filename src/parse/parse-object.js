@@ -22,6 +22,8 @@ export default function parseObjectType(options, type, arrayType) {
     , methods     = {}
     , meta        = {}
     , kind        = arrayType ? ( type.length === 1 ? 'array' : 'tuple' ) : 'object'
+    , storedKeys  = []
+    , storedState
     , prototype
     , thisType
     , restType
@@ -276,10 +278,12 @@ export default function parseObjectType(options, type, arrayType) {
         type = properties[name];
       } else {
         if (!restType) {
-          return;
+          throw new TypeError(`Unknown property ${pathToStr(typeMoniker.concat(name))}`);
         }
         type = restType;
-        if (this.keys.indexOf(String(name)) === -1) return;
+        let hasKey;
+        this._meta.store.suspendTrace(() => hasKey = this.keys.indexOf(String(name)) !== -1);
+        if (!hasKey) return;
       }
       return meta.store.unpack(type, meta.storePath.concat(name), meta.instancePath.concat(name), null, this);
     },
@@ -322,7 +326,13 @@ export default function parseObjectType(options, type, arrayType) {
 
       meta.store.put(meta.storePath.concat(name), packed);
     }, keys() {
-      return Object.keys(this._meta.state);
+      this._meta.store.recordRead(this._meta.storePath);
+      let state = this._meta.state;
+      if (storedState !== state) {
+        storedKeys = Object.keys(state);
+        storedState = state;
+      }
+      return storedKeys;
     },
     properties,
     methods,
