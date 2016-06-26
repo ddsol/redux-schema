@@ -1,6 +1,7 @@
 import { namedFunction, dedent } from '../utils';
 import parseType from '../parse/parse-type';
 import { makeOwner } from './model';
+import bare from '../modifiers/bare';
 
 export default function collection(model, extraProperties) {
   if (!model.isModel) {
@@ -18,9 +19,9 @@ export default function collection(model, extraProperties) {
         })
       , type          = {
           '*': modelType,
-          create: namedFunction(`create${modelType.name}`, function() {
+          create: bare(namedFunction(`create${modelType.name}`, function() {
             return this.model.apply(null, arguments);
-          }, dedent`
+          }), dedent`
             function(){
               return new ${modelType.name}'(...arguments);
             }`, !options.namedFunctions),
