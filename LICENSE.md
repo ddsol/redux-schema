@@ -1,6 +1,7 @@
 The MIT License (MIT)
 
-Copyright (c) 2016 Han de Boer
+Copyright (c) 2016-present Han de Boer
+Portions copyright (c) 2015-present Dan Abramov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
