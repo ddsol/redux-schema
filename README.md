@@ -1,11 +1,11 @@
-#Redux-Schema
+# Redux-Schema
 
 [![build status](https://img.shields.io/travis/ddsol/redux-schema.svg?style=flat-square)](https://travis-ci.org/ddsol/redux-schema)
 [![Coveralls](https://img.shields.io/coveralls/ddsol/redux-schema.svg?style=flat-square)](https://coveralls.io/github/ddsol/redux-schema)
 [![npm version](https://img.shields.io/npm/v/redux-schema.svg?style=flat-square)](https://www.npmjs.com/package/redux-schema)
 [![npm downloads](https://img.shields.io/npm/dm/redux-schema.svg?style=flat-square)](https://www.npmjs.com/package/redux-schema)
 
-###Introduction
+### Introduction
 
 Redux Schema is a system to use [Redux](https://github.com/reactjs/redux) without needing to write any action creators or reducers. If you don't know what Redux is all about, you should spend some time looking at it. There's a whole community for you to connect with.
 
@@ -18,7 +18,7 @@ Also, the state is best kept serializable so it can be packed up and shipped eas
 
 The above principles create applications that are easy to manage as they grow from tiny tests into large complex applications.
 
-###Why Schema?
+### Why Schema?
 
 Redux is a very small library. It's designed to help without getting in the way. It only covers a very small area, namely managing the state. Even there it doesn't touch the state. It leaves this to the reducers, which copy-and-modify the state.
 
@@ -31,8 +31,19 @@ And when you have these reducers and action creators, you have to make sure they
 Less obvious when you start coding this way is that you lose out on something we're very much used to when we write JavaScript, and that is Object Oriented Programming. By turning every mutation into an action and sending this to a central processing plant (the reducer), the code to act on our data is no longer attached to the data. `user.friend(otherUser)` becomes `dispatch(friendUser(requester, invitee))` and the actual code that does the work is found elsewhere and can't reference `this`.
  
 Redux-Schema is designed to overcome these issues. It allows you to use Redux without needing to write any reducers, actionTypes, actionCreators or dispatch calls.
- 
-###What does it look like?
+
+### Example
+
+To whet your appetite, check out the todo example in `examples/todos`. Compare it to the redux version of the same example. You'll see that it contains a lot less code.
+
+In particular:
+- No action types
+- No action creators
+- No reducers
+- No selectors (`mapStateToProps`)
+- No action selecting / binding (`mapDispatchToProps`)
+
+### What does it look like?
 
 A picture is worth 1000 words. Unfortunately, I'm no artist. So here's some code:
 
@@ -358,7 +369,7 @@ console.log(store.rootInstance.user.keys);
 
 ```
 
-###Work in progress
+### Work in progress
 
 There's still a lot of work to be done:
  - More Tests
