@@ -1,4 +1,4 @@
-import uuidImport from 'node-uuid';
+import uuidImport from 'uuid';
 
 let uuid = uuidImport.noConflict ? uuidImport.noConflict() : uuidImport;
 

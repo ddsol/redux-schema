@@ -49,9 +49,9 @@
   "dependencies": {
     "co": "^4.6.0",
     "deepmerge": "^0.2.10",
-    "node-uuid": "^1.4.7",
     "serialize-error": "^2.0.0",
-    "simpexp": "^0.1.0"
+    "simpexp": "^0.1.0",
+    "uuid": "^3.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.10.1",
