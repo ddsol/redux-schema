@@ -11,11 +11,11 @@ const link = (filter, type) => (
 let Footer = ({ filter }) => (
   <p>
     Show:
-    {" "}
+    {' '}
     {link(filter, 'All')}
-    {", "}
+    {', '}
     {link(filter, 'Active')}
-    {", "}
+    {', '}
     {link(filter, 'Completed')}
   </p>
 );
