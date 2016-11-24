@@ -1,6 +1,4 @@
-import uuidImport from 'node-uuid';
-
-let uuid = uuidImport.noConflict ? uuidImport.noConflict() : uuidImport;
+import uuid from 'uuid';
 
 export function isArray(arr) {
   //Adapted from extend, Copyright (c) 2014 Stefan Thomas, MIT license
