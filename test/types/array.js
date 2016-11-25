@@ -501,12 +501,12 @@ describe('Array (plain)', () => {
         store.instance.includes(7).should.be.false;
       });
 
-      it('should not find a an undefined when only a null present', () => {
+      it('should not find an undefined when only a null present', () => {
         store.state = [1, 2, null, 4, 5];
         store.instance.includes(undefined).should.be.false;
       });
 
-      it('should not find a a null when only an undefined present', () => {
+      it('should not find a null when only an undefined present', () => {
         store.state = [1, 2, undefined, 4, 5];
         store.instance.includes(null).should.be.false;
       });
@@ -561,12 +561,12 @@ describe('Array (plain)', () => {
         store.instance.indexOf(7).should.equal(-1);
       });
 
-      it('should not find a an undefined when only a null present', () => {
+      it('should not find an undefined when only a null present', () => {
         store.state = [1, 2, null, 4, 5];
         store.instance.indexOf(undefined).should.equal(-1);
       });
 
-      it('should not find a a null when only an undefined present', () => {
+      it('should not find a null when only an undefined present', () => {
         store.state = [1, 2, undefined, 4, 5];
         store.instance.indexOf(null).should.equal(-1);
       });
@@ -650,12 +650,12 @@ describe('Array (plain)', () => {
         store.instance.lastIndexOf(7).should.equal(-1);
       });
 
-      it('should not find a an undefined when only a null present', () => {
+      it('should not find an undefined when only a null present', () => {
         store.state = [1, 2, null, 4, 5];
         store.instance.lastIndexOf(undefined).should.equal(-1);
       });
 
-      it('should not find a a null when only an undefined present', () => {
+      it('should not find a null when only an undefined present', () => {
         store.state = [1, 2, undefined, 4, 5];
         store.instance.lastIndexOf(null).should.equal(-1);
       });
