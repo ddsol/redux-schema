@@ -82,7 +82,7 @@ export function namedFunction(name, actualFunc, templateFunc, passThrough) {
 
   funcText = funcText.replace(/^[^{]+\{|}$/g, '');
 
-  func = eval(`(function(){function ${name + signature}{/*${funcText.replace(/\*\//g, '* /')}*/return f.apply(this,arguments);}return ${name}}())`); // eslint-disable-line
+  func = eval(`(function(){function ${name + signature} {/*${funcText.replace(/\*\//g, '* /')}*/return f.apply(this,arguments);}return ${name}}())`); // eslint-disable-line
   func.toString = function() {
     return `function ${name + signature}{${funcText}}`;
   };

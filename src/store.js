@@ -292,8 +292,6 @@ export default class Store {
       ;
 
     for (let i = 0; i < path.length; i++) {
-      if (reg.check) return;
-
       let prop = path[i];
 
       if (!reg.children[prop]) {
