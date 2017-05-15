@@ -5,7 +5,7 @@ import serializeError from 'serialize-error';
 export default function error(options) {
   let name = pathToStr(options.typeMoniker) || 'error';
 
-  return finalizeType({
+  const thisType = finalizeType({
     isType: true,
     name: name,
     kind: 'error',
@@ -16,6 +16,10 @@ export default function error(options) {
       if (!isPlainObject(value) || (typeof value.name !== 'string') || (typeof value.message !== 'string')) {
         return `Type of "${pathToStr(instancePath) || name}" data must be and Error object`;
       }
+    },
+    coerceData(value, instancePath) {
+      if (!thisType.validateData(value, instancePath)) return value;
+      return thisType.defaultValue();
     },
     validateAssign(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
@@ -71,4 +75,6 @@ export default function error(options) {
       };
     }
   });
+
+  return thisType;
 }

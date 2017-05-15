@@ -88,6 +88,10 @@ export default function union(...types) {
           && `No matching data type for union "${pathToStr(instancePath)}"`
         );
       },
+      coerceData(value, instancePath) {
+        if (!thisType.validateData(value, instancePath)) return value;
+        return thisType.defaultValue();
+      },
       validateAssign(value, instancePath) {
         instancePath = instancePath || typeMoniker;
         let messages = []

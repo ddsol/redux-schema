@@ -4,7 +4,7 @@ import { pathToStr } from '../utils';
 export default function regExp(options) {
   let name = pathToStr(options.typeMoniker) || 'regexp';
 
-  return finalizeType({
+  const thisType = finalizeType({
     isType: true,
     name: name,
     kind: 'regexp',
@@ -15,33 +15,41 @@ export default function regExp(options) {
         , props = 2
         ;
 
-      instancePath = instancePath || options.typeMoniker;
-      if ('lastIndex' in value) {
-        props++;
-      }
-      if (
-        !value
-        || typeof value !== 'object'
-        || Object.keys(value).length !== props
-        || typeof value.pattern !== 'string'
-        || typeof value.flags !== 'string'
-      ) {
+      if (!value || typeof value !== 'object') {
         ok = false;
       } else {
-        try {
-          new RegExp(value.pattern, value.flags); //eslint-disable-line no-new
-          if (props === 3) {
-            if (typeof value.lastIndex !== 'number') {
-              ok = false;
-            }
-          }
-        } catch (err) {
+        instancePath = instancePath || options.typeMoniker;
+        if ('lastIndex' in value) {
+          props++;
+        }
+        if (
+          !value
+          || typeof value !== 'object'
+          || Object.keys(value).length !== props
+          || typeof value.pattern !== 'string'
+          || typeof value.flags !== 'string'
+        ) {
           ok = false;
+        } else {
+          try {
+            new RegExp(value.pattern, value.flags); //eslint-disable-line no-new
+            if (props === 3) {
+              if (typeof value.lastIndex !== 'number') {
+                ok = false;
+              }
+            }
+          } catch (err) {
+            ok = false;
+          }
         }
       }
       if (!ok) {
         return `Type of "${pathToStr(instancePath) || name}" data must be RegExp data object`;
       }
+    },
+    coerceData(value, instancePath) {
+      if (!thisType.validateData(value, instancePath)) return value;
+      return thisType.defaultValue();
     },
     validateAssign(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
@@ -80,5 +88,6 @@ export default function regExp(options) {
       };
     }
   });
+  return thisType;
 }
 

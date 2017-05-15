@@ -9,6 +9,7 @@ export const baseTypeProperties = {
   storageKinds: Array,
   options: Object,
   validateData: Function,
+  coerceData: Function,
   validateAssign: Function,
   pack: Function,
   unpack: Function,

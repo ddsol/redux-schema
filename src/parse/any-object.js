@@ -28,16 +28,37 @@ export default function anyObject(options, arrayType) {
       if (isArray(value) !== forceArray) return false;
     }
 
-    let keys = Object.keys(value)
-      , propVal
-      ;
+    const keys = Object.keys(value);
     for (let i = 0; i < keys.length; i++) {
-      propVal = value[keys[i]];
+      const propVal = value[keys[i]];
       if (typeof propVal === 'object' && propVal !== null && !isValidObject(propVal)) {
         return false;
       }
     }
     return true;
+  }
+
+  function coerceObject(value, forceArray) {
+    if (isValidObject(value, forceArray)) return value;
+    if (!isPlainObject(value) && !isArray(value)) {
+      return forceArray ? [] : {};
+    }
+    if (typeof forceArray !== 'undefined') {
+      if (isArray(value) !== forceArray) return forceArray ? [] : {};
+    }
+
+    const keys = Object.keys(value);
+    const result = forceArray ? [] : {};
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const propVal = value[key];
+      if (typeof propVal === 'object' && propVal !== null) {
+        result[key] = coerceObject(value);
+      } else {
+        result[key] = value;
+      }
+    }
+    return result;
   }
 
   function clone(obj) {
@@ -86,6 +107,9 @@ export default function anyObject(options, arrayType) {
       if (!isValidObject(value, arrayType)) {
         return `Type of "${pathToStr(instancePath)}" data must be ${kind}`;
       }
+    },
+    coerceData(value) {
+      return coerceObject(value, arrayType);
     },
     validateAssign(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;

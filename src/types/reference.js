@@ -3,7 +3,7 @@ import { pathToStr } from '../utils';
 
 export default function reference(target) {
   function Reference(options) {
-    return finalizeType({
+    const thisType = finalizeType({
       isType: true,
       name: pathToStr(options.typeMoniker),
       kind: 'reference',
@@ -15,6 +15,10 @@ export default function reference(target) {
           return `Reference data for "${pathToStr(instancePath)}" must be a string`;
         }
         if (!value) return 'Reference cannot be empty';
+      },
+      coerceData(value, instancePath) {
+        if (!thisType.validateData(value, instancePath)) return value;
+        return thisType.defaultValue();
       },
       validateAssign(value, instancePath) {
         instancePath = instancePath || options.typeMoniker;
@@ -68,6 +72,7 @@ export default function reference(target) {
         return '<unknown>';
       }
     });
+    return thisType;
   }
 
   Reference.isType = true;

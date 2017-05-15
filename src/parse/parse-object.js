@@ -97,8 +97,9 @@ export default function parseObjectType(options, type, arrayType) {
     options,
     validateData(value, instancePath) {
       instancePath = instancePath || typeMoniker;
-      if (typeof value !== 'object') {
-        return `Type of "${pathToStr(instancePath)}" data must be object`;
+      const objType = arrayType ? 'array' : 'object';
+      if (typeof value !== 'object' || Array.isArray(value) !== arrayType) {
+        return `Type of "${pathToStr(instancePath)}" data must be ${objType}`;
       }
       return (
         propNames.reduce((message, name) => message || properties[name].validateData(value[name], instancePath.concat(name)), null)
@@ -114,6 +115,22 @@ export default function parseObjectType(options, type, arrayType) {
           }
         }, null)
       );
+    },
+    coerceData(value, instancePath) {
+      instancePath = instancePath || typeMoniker;
+      if (!thisType.validateData(value, instancePath)) return value;
+      const result = arrayType ? [] : {};
+      if (typeof value !== 'object') {
+        value = {};
+      }
+      propNames.forEach(name => result[name] = properties[name].coerceData(value[name], instancePath.concat(name)));
+      if (restType) {
+        Object.keys(value).forEach(name => {
+          if (propNames.indexOf(name) !== -1) return;
+          result[name] = restType.coerceData(value[name], instancePath.concat(name));
+        });
+      }
+      return result;
     },
     validateAssign(value, instancePath) {
       instancePath = instancePath || typeMoniker;
@@ -153,7 +170,7 @@ export default function parseObjectType(options, type, arrayType) {
       );
     },
     pack(value) {
-      var isSchemaObject = value && value._meta && value._meta.type && (value._meta.type.kind === 'object' || value._meta.type.kind === 'array');
+      const isSchemaObject = value && value._meta && value._meta.type && (value._meta.type.kind === 'object' || value._meta.type.kind === 'array');
 
       function getProp(prop) {
         if (isSchemaObject) {

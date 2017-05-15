@@ -19,34 +19,47 @@ const basicTypeHandlers = {
   String: {
     name: 'string',
     is: v => typeof v === 'string',
-    defaultValue: ''
+    defaultValue: '',
+    coerce: v => {
+      if (v === undefined || v === null) {
+        return '';
+      }
+      return String(v);
+    }
   },
   Number: {
     name: 'number',
     is: v => typeof v === 'number',
-    defaultValue: 0
+    defaultValue: 0,
+    coerce: v => {
+      const n = Number(v);
+      return isNaN(n) ? 0 : n;
+    }
   },
   Boolean: {
     name: 'boolean',
     is: v => typeof v === 'boolean',
-    defaultValue: false
+    defaultValue: false,
+    coerce: v => Boolean(v)
   },
   Null: {
     name: 'null',
     is: v => v === null,
-    defaultValue: null
+    defaultValue: null,
+    coerce: () => null
   },
   Undefined: {
     name: 'undefined',
     is: v => typeof v === 'undefined',
-    defaultValue: undefined
+    defaultValue: undefined,
+    coerce: () => undefined
   }
 };
 
 function basicType(options, type) {
-  let upName = type.name[0].toUpperCase() + type.name.substr(1);
+  const upName = type.name[0].toUpperCase() + type.name.substr(1);
 
-  return finalizeType({
+  const thisType = finalizeType({
     isType: true,
     name: pathToStr(options.typeMoniker) || type.name,
     kind: type.name,
@@ -57,6 +70,10 @@ function basicType(options, type) {
       if (!type.is(value)) {
         return `Type of "${pathToStr(instancePath)}" data must be ${type.name}`;
       }
+    },
+    coerceData(value) {
+      if (!thisType.validateData(value)) return value;
+      return type.coerce(value);
     },
     validateAssign(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
@@ -79,6 +96,7 @@ function basicType(options, type) {
       return type.defaultValue;
     }
   });
+  return thisType;
 }
 
 let _basicTypes = {};

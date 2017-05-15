@@ -3,10 +3,9 @@ import union from '../types/union';
 
 export default function optional(baseType) {
   function Optional(options) {
-    let self = { options }
-      , base = parseType({ ...options, parent: options.self || self, self: null }, baseType)
-      , out  = union(undefined, baseType)(options)
-      ;
+    const self = { options };
+    const base = parseType({ ...options, parent: options.self || self, self: null }, baseType);
+    const out = union(undefined, baseType)(options);
     if (base.storageKinds.indexOf('undefined') !== -1) {
       return parseType(options, baseType);
     }

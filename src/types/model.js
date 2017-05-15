@@ -95,6 +95,14 @@ export default function model(name, model) {
       resultType = parseType({ ...options, self: ResultModel }, model);
     }
 
+    const origCoerceData = resultType.coerceData;
+    resultType.coerceData = function(value, instancePath) {
+      const coerced = origCoerceData(value, instancePath);
+      if (!instancePath || !instancePath.length) return coerced;
+      coerced.id = instancePath[instancePath.length - 1];
+      return coerced;
+    };
+
     Object.assign(ResultModel, resultType, {
       prototype: resultType.prototype,
       collection,

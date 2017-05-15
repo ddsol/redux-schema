@@ -3,7 +3,7 @@ import { pathToStr } from '../utils';
 
 export default function date(options) {
   let name = pathToStr(options.typeMoniker) || 'date';
-  return finalizeType({
+  const thisType = finalizeType({
     isType: true,
     name: name,
     kind: 'date',
@@ -14,6 +14,10 @@ export default function date(options) {
       if (value !== '' && (typeof value !== 'string' || (new Date(value)).toJSON() !== value)) {
         return `Type of "${pathToStr(instancePath) || name}" data must be Date string`;
       }
+    },
+    coerceData(value, instancePath) {
+      if (!thisType.validateData(value, instancePath)) return value;
+      return '';
     },
     validateAssign(value, instancePath) {
       instancePath = instancePath || options.typeMoniker;
@@ -36,5 +40,6 @@ export default function date(options) {
       return '';
     }
   });
+  return thisType;
 }
 

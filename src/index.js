@@ -16,9 +16,14 @@ export { default as bare } from './modifiers/bare';
 export { default as reducer } from './modifiers/reducer';
 export { default as wrapGenerator } from './modifiers/wrap-generator';
 export { default as autoResolve } from './modifiers/auto-resolve';
+export { default as coerce } from './modifiers/coerce';
 
 //Export generic type parser
 export { default as type } from './parse/type';
+
+export function coerceState(state, type) {
+  return type({ typeMoniker: [] }).coerceData(state);
+}
 
 import Store from './store';
 
