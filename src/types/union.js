@@ -24,7 +24,8 @@ export default function union(...types) {
       return parseType({
         ...options,
         typeMoniker: moniker,
-        parent: options.self || self, self: null
+        parent: options.self || self,
+        self: null
       }, type);
     }
 

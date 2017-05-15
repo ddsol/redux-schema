@@ -8,6 +8,7 @@ export { default as ObjectId } from './types/object-id';
 export { default as collection } from './types/collection';
 export { default as collections } from './types/collections';
 export { default as model, makeOwner } from './types/model';
+export { default as constant } from './types/constant';
 
 //Export modifiers
 export { default as optional } from './modifiers/optional';
