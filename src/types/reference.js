@@ -22,11 +22,14 @@ export default function reference(target) {
       },
       validateAssign(value, instancePath) {
         instancePath = instancePath || options.typeMoniker;
-        if (typeof value !== 'object' || !value._meta || !value._meta.idKey) {
+        if (!value || !value._meta || !value._meta.idKey) {
           return `Reference for "${pathToStr(instancePath)}" must be an object of type "${target}"`;
         }
       },
       pack(value) {
+        if (!value || !value._meta) {
+          throw new Error(`Reference for "${pathToStr(options.typeMoniker)}" must be an object of type "${target}"`);
+        }
         return value[value._meta.idKey];
       },
       unpack(store, storePath, instancePath, currentInstance, owner) {
