@@ -22,6 +22,9 @@ export { default as coerce } from './modifiers/coerce';
 //Export generic type parser
 export { default as type } from './parse/type';
 
+//Helper
+export { owner, scratch } from './utils';
+
 export function coerceState(state, type) {
   return type({ typeMoniker: [] }).coerceData(state);
 }

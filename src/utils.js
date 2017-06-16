@@ -143,9 +143,16 @@ export function isGenerator(obj) {
 }
 
 export function isGeneratorFunction(obj) {
-  var constructor = obj.constructor;
+  const constructor = obj.constructor;
   if (!constructor) return false;
   if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction') return true;
   return isGenerator(constructor.prototype);
 }
 
+export function owner(obj) {
+  return obj && obj._meta && obj._meta.owner;
+}
+
+export function scratch(obj) {
+  return obj && obj._meta && obj._meta.scratch;
+}
